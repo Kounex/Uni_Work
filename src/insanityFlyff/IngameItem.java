@@ -13,8 +13,6 @@ public class IngameItem implements Serializable {
     private List<Offer> offerList = new ArrayList<>();
     // -> Possible implementation of a/w price? Necessary?
 
-    private String fileName = "savedData.bin";
-
     public IngameItem(String itemName, String imageURL) {
         this.itemName = itemName;
         this.imageURL = imageURL;

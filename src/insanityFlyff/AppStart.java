@@ -48,6 +48,10 @@ public class AppStart extends Application {
         primaryStage.show();
     }
 
+    public void refreshItemList(List<IngameItem> allIngameItems) {
+        this.allIngameItems = allIngameItems;
+    }
+
     public static void main(String[] args) {
         launch(args);
     }
