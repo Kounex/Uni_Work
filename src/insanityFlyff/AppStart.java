@@ -45,7 +45,7 @@ public class AppStart extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        primaryStage.setTitle("Insanity Flyff - Offer Collection");
+        primaryStage.setTitle("Insanity Flyff - Offer Control");
         LoadSaveItems.loadObject(this.allIngameItems,this);
         primaryStage.setOnCloseRequest(c -> {
             LoadSaveItems.saveObject(this.allIngameItems);
