@@ -24,6 +24,7 @@ public class AppStart extends Application {
     public void start(Stage primaryStage) throws Exception {
         BorderPane borderPane = new BorderPane();
         borderPane.setStyle("-fx-background-color: crimson");
+        System.out.println("LOL");
 
         Button addItemButton = new Button();
         addItemButton.setText("Add new Item");
