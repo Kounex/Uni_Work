@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Insanity_Flyff_Offer_Control:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Insanity_Flyff_Offer_Control_jar</output-path>
+    <root id="archive" name="Uni_Work.jar">
+      <element id="module-output" name="Uni_Work" />
+    </root>
+  </artifact>
+</component>

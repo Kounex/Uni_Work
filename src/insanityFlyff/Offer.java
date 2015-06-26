@@ -40,6 +40,11 @@ public class Offer implements Serializable{
 
     @Override
     public String toString() {
-        return this.perin + " Perins; " + this.penya + " Penya; + " + this.tradeItems + " | by: " + this.bidderName;
+        if(!this.tradeItems.isEmpty()) {
+            return this.perin + " Perins; " + this.penya + " Penya; + " + this.tradeItems + " | by: " + this.bidderName;
+        } else {
+            return this.perin + " Perins; " + this.penya + " Penya; + No items | by: " + this.bidderName;
+        }
+
     }
 }
