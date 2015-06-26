@@ -35,8 +35,8 @@ public class AppStart extends Application {
         BorderPane borderPane = new BorderPane();
 
         HBox topImage = new HBox();
-        topImage.setPadding(new Insets(150,0,0,0));
-        topImage.setStyle("-fx-background-image: url('insanity_logo.PNG');-fx-background-size: cover");
+        topImage.setPadding(new Insets(230,0,0,0));
+        topImage.setStyle("-fx-background-image: url('insanityFlyff/images/insanity_logo.PNG');-fx-background-size: auto");
 
         ListView<IngameItem> itemListView = new ListView<>();
         itemListView.setItems(FXCollections.observableList(this.allIngameItems));
@@ -59,7 +59,7 @@ public class AppStart extends Application {
         borderPane.setLeft(vboxBottom);
         borderPane.setCenter(itemListView);
 
-        Scene scene = new Scene(borderPane,800,600);
+        Scene scene = new Scene(borderPane,680,800);
 
         primaryStage.setScene(scene);
         primaryStage.show();
