@@ -31,7 +31,7 @@ public class LoadSaveItems {
         }else {
             try (ObjectInputStream is = new ObjectInputStream(new FileInputStream(fileName))) {
                 allIngameItems = (List<IngameItem>) is.readObject();
-                mainApp.refreshItemList(allIngameItems);
+                mainApp.transmitItemList(allIngameItems);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {

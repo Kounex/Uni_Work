@@ -1,5 +1,7 @@
 package insanityFlyff;
 
+import java.io.Serializable;
+
 /**
  * Created by Kounex on 26.06.15.
  *
@@ -9,7 +11,7 @@ package insanityFlyff;
  * int penya: amount of penya offered
  * String bidderName: name of the player who placed the bid
  */
-public class Offer {
+public class Offer implements Serializable{
     private int perin;
     private int penya;
     private String bidderName;

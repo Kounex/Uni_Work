@@ -38,6 +38,10 @@ public class IngameItem implements Serializable {
         this.imageURL = imageURL;
     }
 
+    public String getImageURL() {
+        return this.imageURL;
+    }
+
     @Override
     public String toString() {
         return this.itemName;
