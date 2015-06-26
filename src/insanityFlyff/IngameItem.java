@@ -18,12 +18,8 @@ public class IngameItem implements Serializable {
         this.imageURL = imageURL;
     }
 
-    public void saveData() {
-        //TODO create class to implement readObject and writeObject - serializeable
-    }
-
-    public void addOffer(int perin, int penya, String bidderName) {
-        this.offerList.add(new Offer(perin,penya,bidderName,this));
+    public void addOffer(int perin, int penya, String tradeItem, String bidderName) {
+        this.offerList.add(new Offer(perin,penya,tradeItem,bidderName,this));
     }
 
     public void removeOffer(Offer offer) {
@@ -40,6 +36,10 @@ public class IngameItem implements Serializable {
 
     public String getImageURL() {
         return this.imageURL;
+    }
+
+    public List<Offer> getOfferList() {
+        return this.offerList;
     }
 
     @Override

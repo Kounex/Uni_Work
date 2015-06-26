@@ -37,8 +37,10 @@ public class AppStart extends Application {
 
     List<IngameItem> allIngameItems = new ArrayList<>();
     ListView<IngameItem> itemListView = new ListView<>();
+    ListView<Offer> itemOffersListView = new ListView<>();
     Label imageNameLabel = new Label();
     String imagePathSelected;
+    ImageView itemImage;
 
 
     @Override
@@ -50,8 +52,8 @@ public class AppStart extends Application {
         });
 
         itemListView.setOnMouseClicked(c -> {
-            if(c.getButton() == MouseButton.PRIMARY) {
-                if(c.getClickCount() == 2) {
+            if (c.getButton() == MouseButton.PRIMARY) {
+                if (c.getClickCount() == 2) {
                     showItemStage();
                 }
             }
@@ -93,25 +95,71 @@ public class AppStart extends Application {
         Scene scene = new Scene(borderPane,680,800);
 
         primaryStage.setScene(scene);
+        primaryStage.setResizable(false);
         primaryStage.show();
     }
 
     private void showItemStage() {
         Stage showItemStage = new Stage();
+        showItemStage.setTitle("Current Offers");
 
         BorderPane borderPaneShowItem = new BorderPane();
 
         IngameItem currentItem = itemListView.getSelectionModel().getSelectedItem();
 
-        ImageView itemImage = new ImageView(new Image(currentItem.getImageURL()));
+        itemImage = new ImageView(new Image(currentItem.getImageURL()));
+
+        Button changeItemImage = new Button();
+        changeItemImage.setText("Change Image");
+        changeItemImage.setOnAction(e -> {
+            this.addImageViaFileChooser();
+            currentItem.updateImageURL(imagePathSelected);
+            itemImage = new ImageView(new Image(currentItem.getImageURL()));
+            showItemStage.close();
+            this.showItemStage();
+        });
+
+        Button addOfferToItem = new Button();
+        addOfferToItem.setText("Add offer");
+        addOfferToItem.setOnAction(a -> {
+            addOfferToItemStage(currentItem);
+        });
+
+        Button deleteOfferFromItem = new Button();
+        deleteOfferFromItem.setText("Delete offer");
+        deleteOfferFromItem.setOnAction(e -> {
+            currentItem.removeOffer(this.itemOffersListView.getSelectionModel().getSelectedItem());
+            this.refreshItemOfferList(currentItem);
+        });
+
+        this.refreshItemOfferList(currentItem);
+
+        HBox hboxItemShowCenterListView = new HBox();
+        itemOffersListView.setPrefWidth(600);
+        hboxItemShowCenterListView.setPrefHeight(itemImage.getImage().getHeight());
+        hboxItemShowCenterListView.getChildren().add(this.itemOffersListView);
+
+        HBox hboxItemShowCenterButtons = new HBox();
+        hboxItemShowCenterButtons.setPadding(new Insets(25,0,0,220));
+        hboxItemShowCenterButtons.setSpacing(30);
+        hboxItemShowCenterButtons.getChildren().addAll(addOfferToItem,deleteOfferFromItem);
 
         VBox vboxItemImageLeft = new VBox();
-        vboxItemImageLeft.getChildren().add(itemImage);
+        vboxItemImageLeft.setAlignment(Pos.CENTER);
+        vboxItemImageLeft.setPadding(new Insets(0,0,0,40));
+        vboxItemImageLeft.setSpacing(25);
+        vboxItemImageLeft.getChildren().addAll(itemImage, changeItemImage);
+
+        VBox vboxItemShowCenter = new VBox();
+        vboxItemShowCenter.setPadding(new Insets(30, 0, 0, 30));
+        vboxItemShowCenter.getChildren().addAll(hboxItemShowCenterListView, hboxItemShowCenterButtons);
 
         borderPaneShowItem.setLeft(vboxItemImageLeft);
+        borderPaneShowItem.setCenter(vboxItemShowCenter);
 
-        Scene sceneShowItem = new Scene(borderPaneShowItem,500,500);
+        Scene sceneShowItem = new Scene(borderPaneShowItem,itemImage.getImage().getWidth()+700,itemImage.getImage().getHeight()+100);
         showItemStage.setScene(sceneShowItem);
+        showItemStage.setResizable(false);
         showItemStage.show();
     }
 
@@ -135,9 +183,9 @@ public class AppStart extends Application {
         selectItemImage.setText("Select Image");
         selectItemImage.setOnAction(e -> {
             String imageName = addImageViaFileChooser();
-            if(imageName!=null) {
+            if (imageName != null) {
                 imageNameLabel.setText("Image name:\n" + imageName);
-            }else{
+            } else {
                 imageNameLabel.setText("Image name:\n None selected");
             }
             imageNameLabel.setStyle("-fx-font-weight: bold; -fx-font-style: oblique");
@@ -184,7 +232,88 @@ public class AppStart extends Application {
         addItemStage.show();
     }
 
-    public String addImageViaFileChooser() {
+    private void addOfferToItemStage(IngameItem currentItem) {
+        Stage addOfferStage = new Stage();
+        addOfferStage.setTitle("Add offer");
+
+        BorderPane borderPaneAddOffer = new BorderPane();
+
+        Label perinLabel = new Label();
+        perinLabel.setPrefWidth(80);
+        perinLabel.setText("Perin: ");
+        perinLabel.setStyle("-fx-font-weight: bold");
+
+        Label penyaLabel = new Label();
+        penyaLabel.setPrefWidth(80);
+        penyaLabel.setText("Penya: ");
+        penyaLabel.setStyle("-fx-font-weight: bold");
+
+        Label tradeItemLabel = new Label();
+        tradeItemLabel.setPrefWidth(80);
+        tradeItemLabel.setText("Trade items: ");
+        tradeItemLabel.setStyle("-fx-font-weight: bold");
+
+        Label bidderNameLabel = new Label();
+        bidderNameLabel.setPrefWidth(80);
+        bidderNameLabel.setText("Player name: ");
+        bidderNameLabel.setStyle("-fx-font-weight: bold");
+
+        TextField perinTextField = new TextField();
+        perinTextField.setPrefWidth(350);
+
+        TextField penyaTextField = new TextField();
+        penyaTextField.setPrefWidth(350);
+
+        TextField tradeItemTextField = new TextField();
+        tradeItemTextField.setPrefWidth(350);
+
+        TextField bidderNameTextField = new TextField();
+        bidderNameTextField.setPrefWidth(350);
+
+        Button saveOffer = new Button();
+        saveOffer.setText("Save");
+        saveOffer.setOnAction(e -> {
+            if (!perinTextField.getText().isEmpty() && !penyaTextField.getText().isEmpty() && !bidderNameTextField.getText().isEmpty()) {
+                currentItem.addOffer(Integer.parseInt(perinTextField.getText()), Integer.parseInt(perinTextField.getText()), tradeItemTextField.getText(), bidderNameTextField.getText());
+                this.refreshItemOfferList(currentItem);
+                addOfferStage.close();
+            }
+        });
+
+        HBox hboxAddOfferFirstLine = new HBox();
+        hboxAddOfferFirstLine.setSpacing(5);
+        hboxAddOfferFirstLine.getChildren().addAll(perinLabel, perinTextField);
+
+        HBox hboxAddOfferSecondLine = new HBox();
+        hboxAddOfferSecondLine.setSpacing(5);
+        hboxAddOfferSecondLine.getChildren().addAll(penyaLabel, penyaTextField);
+
+        HBox hboxAddOfferThirdLine = new HBox();
+        hboxAddOfferThirdLine.setSpacing(5);
+        hboxAddOfferThirdLine.getChildren().addAll(tradeItemLabel, tradeItemTextField);
+
+        HBox hboxAddOfferFourthLine = new HBox();
+        hboxAddOfferFourthLine.setSpacing(5);
+        hboxAddOfferFourthLine.getChildren().addAll(bidderNameLabel, bidderNameTextField);
+
+        HBox hboxAddOfferButton = new HBox();
+        hboxAddOfferButton.setPadding(new Insets(0,0,0,120));
+        hboxAddOfferButton.getChildren().add(saveOffer);
+
+        VBox vboxAddOfferCenter = new VBox();
+        vboxAddOfferCenter.setSpacing(10);
+        vboxAddOfferCenter.setPadding(new Insets(20, 0, 0, 20));
+        vboxAddOfferCenter.getChildren().addAll(hboxAddOfferFirstLine, hboxAddOfferSecondLine, hboxAddOfferThirdLine, hboxAddOfferFourthLine, hboxAddOfferButton);
+
+        borderPaneAddOffer.setCenter(vboxAddOfferCenter);
+
+        Scene addOfferScene = new Scene(borderPaneAddOffer,500,250);
+        addOfferStage.setScene(addOfferScene);
+        addOfferStage.setResizable(false);
+        addOfferStage.show();
+    }
+
+    private String addImageViaFileChooser() {
         FileChooser fileChooser = new FileChooser();
         File chosenFile = fileChooser.showOpenDialog(new Stage());
         if(chosenFile!=null) {
@@ -203,6 +332,10 @@ public class AppStart extends Application {
      */
     public void refreshItemList() {
         itemListView.setItems(FXCollections.observableList(this.allIngameItems));
+    }
+
+    private void refreshItemOfferList(IngameItem currentItem) {
+        itemOffersListView.setItems(FXCollections.observableList(currentItem.getOfferList()));
     }
 
     public void transmitItemList(List<IngameItem> allIngameItems) {

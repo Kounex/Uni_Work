@@ -14,12 +14,14 @@ import java.io.Serializable;
 public class Offer implements Serializable{
     private int perin;
     private int penya;
+    private String tradeItems;
     private String bidderName;
     private IngameItem item;
 
-    public Offer(int perin, int penya, String bidderName, IngameItem item) {
+    public Offer(int perin, int penya, String tradeItems, String bidderName, IngameItem item) {
         this.perin = perin;
         this.penya = penya;
+        this.tradeItems = tradeItems;
         this.bidderName = bidderName;
         this.item = item;
     }
@@ -34,5 +36,10 @@ public class Offer implements Serializable{
 
     public String getBidderName() {
         return this.bidderName;
+    }
+
+    @Override
+    public String toString() {
+        return this.perin + " Perins; " + this.penya + " Penya; + " + this.tradeItems + " | by: " + this.bidderName;
     }
 }
