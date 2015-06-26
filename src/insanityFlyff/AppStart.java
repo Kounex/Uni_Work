@@ -1,6 +1,9 @@
 package insanityFlyff;
 
 import javafx.application.Application;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ListView;
@@ -22,23 +25,37 @@ public class AppStart extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        BorderPane borderPane = new BorderPane();
-        borderPane.setStyle("-fx-background-color: crimson");
+        /**
+         * Filling the list by hand for testing purpose
+         */
+        IngameItem item1 = new IngameItem("Legendary Golden Bow","");
+        item1.addOffer(2,0,"Kounex");
+        this.allIngameItems.add(item1);
 
-        System.out.println("Hoffentlich hats geklappt!");
+        BorderPane borderPane = new BorderPane();
+
+        HBox topImage = new HBox();
+        topImage.setPadding(new Insets(150,0,0,0));
+        topImage.setStyle("-fx-background-image: url('insanity_logo.PNG');-fx-background-size: cover");
+
+        ListView<IngameItem> itemListView = new ListView<>();
+        itemListView.setItems(FXCollections.observableList(this.allIngameItems));
 
         Button addItemButton = new Button();
         addItemButton.setText("Add new Item");
 
         Button deleteItemButton = new Button();
         deleteItemButton.setText("Delete Item");
+        deleteItemButton.setOnAction(e -> {
+            this.allIngameItems.remove(itemListView.getSelectionModel().getSelectedItem());
+            itemListView.setItems(FXCollections.observableList(this.allIngameItems));
+        });
 
         VBox vboxBottom = new VBox();
         vboxBottom.getChildren().add(addItemButton);
         vboxBottom.getChildren().add(deleteItemButton);
 
-        ListView<IngameItem> itemListView = new ListView<>();
-
+        borderPane.setTop(topImage);
         borderPane.setLeft(vboxBottom);
         borderPane.setCenter(itemListView);
 
