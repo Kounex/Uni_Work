@@ -239,22 +239,22 @@ public class AppStart extends Application {
         BorderPane borderPaneAddOffer = new BorderPane();
 
         Label perinLabel = new Label();
-        perinLabel.setPrefWidth(80);
+        perinLabel.setPrefWidth(90);
         perinLabel.setText("Perin: ");
         perinLabel.setStyle("-fx-font-weight: bold");
 
         Label penyaLabel = new Label();
-        penyaLabel.setPrefWidth(80);
+        penyaLabel.setPrefWidth(90);
         penyaLabel.setText("Penya: ");
         penyaLabel.setStyle("-fx-font-weight: bold");
 
         Label tradeItemLabel = new Label();
-        tradeItemLabel.setPrefWidth(80);
+        tradeItemLabel.setPrefWidth(90);
         tradeItemLabel.setText("Trade items: ");
         tradeItemLabel.setStyle("-fx-font-weight: bold");
 
         Label bidderNameLabel = new Label();
-        bidderNameLabel.setPrefWidth(80);
+        bidderNameLabel.setPrefWidth(90);
         bidderNameLabel.setText("Player name: ");
         bidderNameLabel.setStyle("-fx-font-weight: bold");
 
