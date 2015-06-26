@@ -18,6 +18,10 @@ import java.util.List;
 
 /**
  * Created by Kounex on 26.06.15.
+ *
+ * Class to realise the main app. GUI based on JavaFX
+ *
+ * List<IngameItem> allIngameItems: all items actively used for bidding
  */
 public class AppStart extends Application {
 
@@ -35,7 +39,7 @@ public class AppStart extends Application {
         BorderPane borderPane = new BorderPane();
 
         HBox topImage = new HBox();
-        topImage.setPadding(new Insets(230,0,0,0));
+        topImage.setPadding(new Insets(240,0,0,0));
         topImage.setStyle("-fx-background-image: url('insanityFlyff/images/insanity_logo.PNG');-fx-background-size: auto");
 
         ListView<IngameItem> itemListView = new ListView<>();
@@ -43,6 +47,12 @@ public class AppStart extends Application {
 
         Button addItemButton = new Button();
         addItemButton.setText("Add new Item");
+        addItemButton.setOnAction(e -> {
+            Stage addItemStage = new Stage();
+
+            BorderPane borderPaneAddItem = new BorderPane();
+            GridPane gridPaneAddItem = new GridPane();
+        });
 
         Button deleteItemButton = new Button();
         deleteItemButton.setText("Delete Item");
@@ -52,6 +62,11 @@ public class AppStart extends Application {
         });
 
         VBox vboxBottom = new VBox();
+        //vboxBottom.setStyle("-fx-background-color: linear-gradient(#686868 0%, #232723 25%, #373837 75%, #757575 100%)");
+        //vboxBottom.setStyle("-fx-background-color: linear-gradient(#C8DCA6 0%, #DBFFC0 25%, #E0FFCF 75%, #FFFFFF 100%)");
+        vboxBottom.setStyle("-fx-background-image: url('insanityFlyff/images/insanity_sidebar.png');-fx-background-size: cover");
+        vboxBottom.setSpacing(15);
+        vboxBottom.setPadding(new Insets(50,10,10,10));
         vboxBottom.getChildren().add(addItemButton);
         vboxBottom.getChildren().add(deleteItemButton);
 
