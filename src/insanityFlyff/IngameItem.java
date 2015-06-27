@@ -2,7 +2,9 @@ package insanityFlyff;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Kounex on 26.06.15.
@@ -11,9 +13,15 @@ public class IngameItem implements Serializable {
     private String itemName;
     private String imageURL;
     private List<Offer> offerList = new ArrayList<>();
-    // -> Possible implementation of a/w price? Necessary?
+    int amountAvailable;
+    int amountSold;
+    int shopPrice;
+    private boolean auction;
+    Map<Integer,Integer> sellHistory = new HashMap<>();
 
-    public IngameItem(String itemName, String imageURL) {
+    public IngameItem(int amountAvailable, boolean auction, String itemName, String imageURL) {
+        this.amountAvailable = amountAvailable;
+        this.auction = auction;
         this.itemName = itemName;
         this.imageURL = imageURL;
     }
@@ -32,6 +40,14 @@ public class IngameItem implements Serializable {
 
     public void updateImageURL(String imageURL) {
         this.imageURL = imageURL;
+    }
+
+    public void updateSellHistory(int amount, int price) {
+
+    }
+
+    public boolean getAuctionState() {
+       return this.auction;
     }
 
     public String getImageURL() {
