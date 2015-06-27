@@ -39,17 +39,26 @@ public class AppStart extends Application {
     ListView<IngameItem> itemListView = new ListView<>();
     ListView<Offer> itemOffersListView = new ListView<>();
     Label imageNameLabel = new Label();
-    String imagePathSelected;
     ImageView itemImage;
+    String defaultImagePath = "insanityFlyff/images/404-not-found.jpg";
+    String imagePathSelected = defaultImagePath;
 
 
     @Override
     public void start(Stage primaryStage) throws Exception {
         primaryStage.setTitle("Insanity Flyff - Offer Control");
-        LoadSaveItems.loadObject(this.allIngameItems,this);
+        LoadSaveItems.loadObject(this.allIngameItems, this);
         primaryStage.setOnCloseRequest(c -> {
             LoadSaveItems.saveObject(this.allIngameItems);
         });
+
+        /**
+         * ListView settings
+         */
+
+        itemListView.setStyle("-fx-font-weight: bold");
+
+        itemOffersListView.setStyle("-fx-font-weight: bold");
 
         itemListView.setOnMouseClicked(c -> {
             if (c.getButton() == MouseButton.PRIMARY) {
@@ -105,16 +114,38 @@ public class AppStart extends Application {
 
         BorderPane borderPaneShowItem = new BorderPane();
 
-        IngameItem currentItem = itemListView.getSelectionModel().getSelectedItem();
+        IngameItem currentItem = this.itemListView.getSelectionModel().getSelectedItem();
 
-        itemImage = new ImageView(new Image(currentItem.getImageURL()));
+
+        /**
+         * TODO: Finding out, if te path is still legit
+         */
+        this.itemImage = new ImageView(new Image(currentItem.getImageURL()));
+
+        if(this.itemImage.getFitHeight()==0) {
+            currentItem.updateImageURL(this.defaultImagePath);
+            this.itemImage = new ImageView(new Image(currentItem.getImageURL()));
+        }
 
         Button changeItemImage = new Button();
         changeItemImage.setText("Change Image");
         changeItemImage.setOnAction(e -> {
-            this.addImageViaFileChooser();
-            currentItem.updateImageURL(imagePathSelected);
-            itemImage = new ImageView(new Image(currentItem.getImageURL()));
+            String imageName = this.addImageViaFileChooser();
+            if(!imageName.equals("None selected")) {
+                currentItem.updateImageURL(this.imagePathSelected);
+            } else {
+                currentItem.updateImageURL(this.defaultImagePath);
+            }
+            this.itemImage = new ImageView(new Image(currentItem.getImageURL()));
+            showItemStage.close();
+            this.showItemStage();
+        });
+
+        Button deleteItemImage = new Button();
+        deleteItemImage.setText("Delete image");
+        deleteItemImage.setOnAction(a -> {
+            currentItem.updateImageURL(this.defaultImagePath);
+            this.itemImage = new ImageView(new Image(currentItem.getImageURL()));
             showItemStage.close();
             this.showItemStage();
         });
@@ -136,19 +167,24 @@ public class AppStart extends Application {
 
         HBox hboxItemShowCenterListView = new HBox();
         itemOffersListView.setPrefWidth(600);
-        hboxItemShowCenterListView.setPrefHeight(itemImage.getImage().getHeight());
+        hboxItemShowCenterListView.setPrefHeight(this.itemImage.getImage().getHeight());
         hboxItemShowCenterListView.getChildren().add(this.itemOffersListView);
 
         HBox hboxItemShowCenterButtons = new HBox();
-        hboxItemShowCenterButtons.setPadding(new Insets(25,0,0,220));
+        hboxItemShowCenterButtons.setPadding(new Insets(25, 0, 0, 220));
         hboxItemShowCenterButtons.setSpacing(30);
         hboxItemShowCenterButtons.getChildren().addAll(addOfferToItem,deleteOfferFromItem);
 
+        HBox hboxButtonsUnderImageLeft = new HBox();
+        hboxButtonsUnderImageLeft.setSpacing(15);
+        hboxButtonsUnderImageLeft.setAlignment(Pos.CENTER);
+        hboxButtonsUnderImageLeft.getChildren().addAll(changeItemImage,deleteItemImage);
+
         VBox vboxItemImageLeft = new VBox();
         vboxItemImageLeft.setAlignment(Pos.CENTER);
-        vboxItemImageLeft.setPadding(new Insets(0,0,0,40));
+        vboxItemImageLeft.setPadding(new Insets(0, 0, 0, 40));
         vboxItemImageLeft.setSpacing(25);
-        vboxItemImageLeft.getChildren().addAll(itemImage, changeItemImage);
+        vboxItemImageLeft.getChildren().addAll(itemImage, hboxButtonsUnderImageLeft);
 
         VBox vboxItemShowCenter = new VBox();
         vboxItemShowCenter.setPadding(new Insets(30, 0, 0, 30));
@@ -182,8 +218,8 @@ public class AppStart extends Application {
         Button selectItemImage = new Button();
         selectItemImage.setText("Select Image");
         selectItemImage.setOnAction(e -> {
-            String imageName = addImageViaFileChooser();
-            if (imageName != null) {
+            String imageName = this.addImageViaFileChooser();
+            if (!imageName.equals("None selected")) {
                 imageNameLabel.setText("Image name:\n" + imageName);
             } else {
                 imageNameLabel.setText("Image name:\n None selected");
@@ -219,13 +255,13 @@ public class AppStart extends Application {
 
         HBox hboxItemAddBottom = new HBox();
         hboxItemAddBottom.getChildren().add(sendItemAdd);
-        hboxItemAddBottom.setPadding(new Insets(0, 0, 20, 0));
-        hboxItemAddBottom.setAlignment(Pos.CENTER);
+        hboxItemAddBottom.setPadding(new Insets(0, 0, 20, 120));
+        //hboxItemAddBottom.setAlignment(Pos.CENTER);
 
         borderPaneAddItem.setCenter(hboxItemAddCenter);
         borderPaneAddItem.setBottom(hboxItemAddBottom);
 
-        Scene sceneItemAdd = new Scene(borderPaneAddItem,500,140);
+        Scene sceneItemAdd = new Scene(borderPaneAddItem,500,150);
 
         addItemStage.setScene(sceneItemAdd);
         addItemStage.setResizable(false);
@@ -318,13 +354,14 @@ public class AppStart extends Application {
         File chosenFile = fileChooser.showOpenDialog(new Stage());
         if(chosenFile!=null) {
             try {
-                imagePathSelected = "file:///"+chosenFile.getCanonicalPath();
+                this.imagePathSelected = "file:///"+chosenFile.getCanonicalPath();
                 return chosenFile.getName();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        return null;
+        this.imagePathSelected = this.defaultImagePath;
+        return "None selected";
     }
 
     /**
