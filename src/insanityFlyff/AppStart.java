@@ -5,10 +5,7 @@ import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TextField;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
@@ -81,7 +78,7 @@ public class AppStart extends Application {
         Button addItemButton = new Button();
         addItemButton.setText("Add new Item");
         addItemButton.setPrefWidth(150);
-        addItemButton.setOnAction(e -> chooseAuctionOrNotStage());
+        addItemButton.setOnAction(e -> addItemStage());
 
         Button deleteItemButton = new Button();
         deleteItemButton.setText("Delete Item");
@@ -111,45 +108,10 @@ public class AppStart extends Application {
         primaryStage.show();
     }
 
-    //TODO: Instead of this stage -> checkbox ar addItemStage!
-    private void chooseAuctionOrNotStage() {
-        Stage chooseAuctionStage = new Stage();
-        chooseAuctionStage.setTitle("Choose State");
-
-        BorderPane borderPaneChooseAuction = new BorderPane();
-
-        Button auctionButton = new Button();
-        auctionButton.setPrefWidth(70);
-        auctionButton.setText("Auction");
-        auctionButton.setOnAction(e -> {
-            addItemStage(true);
-            chooseAuctionStage.close();
-        });
-
-        Button shopButton = new Button();
-        shopButton.setPrefWidth(70);
-        shopButton.setText("Shop");
-        shopButton.setOnAction(a -> {
-            addItemStage(false);
-            chooseAuctionStage.close();
-        });
-
-        HBox hboxChooseState = new HBox();
-        hboxChooseState.setSpacing(30);
-        hboxChooseState.setAlignment(Pos.CENTER);
-        hboxChooseState.getChildren().addAll(auctionButton,shopButton);
-
-        borderPaneChooseAuction.setCenter(hboxChooseState);
-
-        Scene auctionOrNotScene = new Scene(borderPaneChooseAuction,210,100);
-        chooseAuctionStage.setScene(auctionOrNotScene);
-        chooseAuctionStage.show();
-    }
-
     /**
      * New stage for adding a new auction item to the list ~ called via addItem Button
      */
-    private void addItemStage(boolean auction) {
+    private void addItemStage() {
         Stage addItemStage = new Stage();
         addItemStage.setTitle("Add new item");
 
@@ -168,6 +130,9 @@ public class AppStart extends Application {
 
         TextField itemAmountTextField = new TextField();
         itemAmountTextField.setMaxWidth(50);
+
+        CheckBox checkBoxAuction = new CheckBox();
+        checkBoxAuction.setText("Auction?");
 
         Button selectItemImage = new Button();
         selectItemImage.setText("Select Image");
@@ -192,16 +157,20 @@ public class AppStart extends Application {
         createItemAdd.setText("Create");
         createItemAdd.setOnAction(a -> {
             if (!itemNameTextField.getText().isEmpty() && !itemAmountTextField.getText().isEmpty()) {
-                this.allIngameItems.add(new IngameItem(Integer.parseInt(itemAmountTextField.getText()), auction, itemNameTextField.getText(), imagePathSelected));
+                this.allIngameItems.add(new IngameItem(Integer.parseInt(itemAmountTextField.getText()), checkBoxAuction.isSelected(), itemNameTextField.getText(), imagePathSelected));
                 this.refreshItemList();
                 addItemStage.close();
             }
         });
 
+        HBox hboxforSendAndCheckBox = new HBox();
+        hboxforSendAndCheckBox.setSpacing(20);
+        hboxforSendAndCheckBox.getChildren().addAll(itemAmountTextField, checkBoxAuction);
+
         VBox vboxInsideHboxItemAddCenter = new VBox();
         vboxInsideHboxItemAddCenter.setSpacing(10);
         vboxInsideHboxItemAddCenter.setPadding(new Insets(20, 0, 0, 20));
-        vboxInsideHboxItemAddCenter.getChildren().addAll(itemNameLabel, itemNameTextField, itemAmountLabel, itemAmountTextField);
+        vboxInsideHboxItemAddCenter.getChildren().addAll(itemNameLabel, itemNameTextField, itemAmountLabel, hboxforSendAndCheckBox);
 
         HBox hboxItemAddCenter = new HBox();
         hboxItemAddCenter.setSpacing(30);
