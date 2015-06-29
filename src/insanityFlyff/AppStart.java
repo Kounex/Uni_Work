@@ -12,7 +12,9 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.File;
@@ -36,6 +38,7 @@ public class AppStart extends Application {
     ImageView itemImage;
     String defaultImagePath = "insanityFlyff/images/404-not-found.jpg";
     String imagePathSelected = defaultImagePath;
+    boolean newItem;
 
 
     @Override
@@ -57,11 +60,7 @@ public class AppStart extends Application {
         itemListView.setOnMouseClicked(c -> {
             if (c.getButton() == MouseButton.PRIMARY) {
                 if (c.getClickCount() == 2) {
-                    if(itemListView.getSelectionModel().getSelectedItem().getAuctionState()) {
-                        showAuctionItemStage();
-                    } else {
-                        //TODO showShopItemStage
-                    }
+                    showItemStage();
                 }
             }
         });
@@ -156,7 +155,14 @@ public class AppStart extends Application {
         Button createItemAdd = new Button();
         createItemAdd.setText("Create");
         createItemAdd.setOnAction(a -> {
-            if (!itemNameTextField.getText().isEmpty() && !itemAmountTextField.getText().isEmpty()) {
+            newItem = true;
+            this.itemListView.getItems().forEach(c -> {
+                if (itemNameTextField.getText().equals(c.getItemName())) {
+                    noticeMessageBox("Error", "This item already exists! Please specify another name or use the item which is already in the list.");
+                    newItem = false;
+                }
+            });
+            if (!itemNameTextField.getText().isEmpty() && !itemAmountTextField.getText().isEmpty() && newItem) {
                 this.allIngameItems.add(new IngameItem(Integer.parseInt(itemAmountTextField.getText()), checkBoxAuction.isSelected(), itemNameTextField.getText(), imagePathSelected));
                 this.refreshItemList();
                 addItemStage.close();
@@ -191,9 +197,9 @@ public class AppStart extends Application {
         addItemStage.show();
     }
 
-    private void showAuctionItemStage() {
-        Stage showItemStage = new Stage();
-        showItemStage.setTitle("Current Offers");
+    private void showItemStage() {
+        Stage showAuctionItemStage = new Stage();
+        showAuctionItemStage.setTitle("Current Offers");
 
         BorderPane borderPaneShowItem = new BorderPane();
 
@@ -219,8 +225,8 @@ public class AppStart extends Application {
                 currentItem.updateImageURL(this.defaultImagePath);
             }
             this.itemImage = new ImageView(new Image(currentItem.getImageURL()));
-            showItemStage.close();
-            this.showAuctionItemStage();
+            showAuctionItemStage.close();
+            this.showItemStage();
         });
 
         Button deleteItemImage = new Button();
@@ -228,34 +234,9 @@ public class AppStart extends Application {
         deleteItemImage.setOnAction(a -> {
             currentItem.updateImageURL(this.defaultImagePath);
             this.itemImage = new ImageView(new Image(currentItem.getImageURL()));
-            showItemStage.close();
-            this.showAuctionItemStage();
+            showAuctionItemStage.close();
+            this.showItemStage();
         });
-
-        Button addOfferToItem = new Button();
-        addOfferToItem.setText("Add offer");
-        addOfferToItem.setOnAction(a -> {
-            addOfferToItemStage(currentItem);
-        });
-
-        Button deleteOfferFromItem = new Button();
-        deleteOfferFromItem.setText("Delete offer");
-        deleteOfferFromItem.setOnAction(e -> {
-            currentItem.removeOffer(this.itemOffersListView.getSelectionModel().getSelectedItem());
-            this.refreshItemOfferList(currentItem);
-        });
-
-        this.refreshItemOfferList(currentItem);
-
-        HBox hboxItemShowCenterListView = new HBox();
-        itemOffersListView.setPrefWidth(600);
-        hboxItemShowCenterListView.setPrefHeight(this.itemImage.getImage().getHeight());
-        hboxItemShowCenterListView.getChildren().add(this.itemOffersListView);
-
-        HBox hboxItemShowCenterButtons = new HBox();
-        hboxItemShowCenterButtons.setPadding(new Insets(25, 0, 0, 220));
-        hboxItemShowCenterButtons.setSpacing(30);
-        hboxItemShowCenterButtons.getChildren().addAll(addOfferToItem, deleteOfferFromItem);
 
         HBox hboxButtonsUnderImageLeft = new HBox();
         hboxButtonsUnderImageLeft.setSpacing(15);
@@ -268,17 +249,45 @@ public class AppStart extends Application {
         vboxItemImageLeft.setSpacing(25);
         vboxItemImageLeft.getChildren().addAll(itemImage, hboxButtonsUnderImageLeft);
 
-        VBox vboxItemShowCenter = new VBox();
-        vboxItemShowCenter.setPadding(new Insets(30, 0, 0, 30));
-        vboxItemShowCenter.getChildren().addAll(hboxItemShowCenterListView, hboxItemShowCenterButtons);
+        if(currentItem.getAuctionState()) {
+            Button addOfferToItem = new Button();
+            addOfferToItem.setText("Add offer");
+            addOfferToItem.setOnAction(a -> {
+                addOfferToItemStage(currentItem);
+            });
+
+            Button deleteOfferFromItem = new Button();
+            deleteOfferFromItem.setText("Delete offer");
+            deleteOfferFromItem.setOnAction(e -> {
+                currentItem.removeOffer(this.itemOffersListView.getSelectionModel().getSelectedItem());
+                this.refreshItemOfferList(currentItem);
+            });
+
+            this.refreshItemOfferList(currentItem);
+
+            HBox hboxItemShowCenterListView = new HBox();
+            itemOffersListView.setPrefWidth(itemImage.getImage().getWidth()+200);
+            hboxItemShowCenterListView.setPrefHeight(this.itemImage.getImage().getHeight());
+            hboxItemShowCenterListView.getChildren().add(this.itemOffersListView);
+
+            HBox hboxItemShowCenterButtons = new HBox();
+            hboxItemShowCenterButtons.setPadding(new Insets(25, 0, 0, 220));
+            hboxItemShowCenterButtons.setSpacing(30);
+            hboxItemShowCenterButtons.getChildren().addAll(addOfferToItem, deleteOfferFromItem);
+
+            VBox vboxItemShowCenter = new VBox();
+            vboxItemShowCenter.setPadding(new Insets(30, 0, 0, 30));
+            vboxItemShowCenter.getChildren().addAll(hboxItemShowCenterListView, hboxItemShowCenterButtons);
+            borderPaneShowItem.setCenter(vboxItemShowCenter);
+        } else {
+//            HBox amountChange
+        }
 
         borderPaneShowItem.setLeft(vboxItemImageLeft);
-        borderPaneShowItem.setCenter(vboxItemShowCenter);
-
         Scene sceneShowItem = new Scene(borderPaneShowItem,itemImage.getImage().getWidth()+700,itemImage.getImage().getHeight()+100);
-        showItemStage.setScene(sceneShowItem);
-        showItemStage.setResizable(false);
-        showItemStage.show();
+        showAuctionItemStage.setScene(sceneShowItem);
+        showAuctionItemStage.setResizable(false);
+        showAuctionItemStage.show();
     }
 
     private void addOfferToItemStage(IngameItem currentItem) {
@@ -346,7 +355,7 @@ public class AppStart extends Application {
         hboxAddOfferFourthLine.getChildren().addAll(bidderNameLabel, bidderNameTextField);
 
         HBox hboxAddOfferButton = new HBox();
-        hboxAddOfferButton.setPadding(new Insets(0,0,0,120));
+        hboxAddOfferButton.setPadding(new Insets(0, 0, 0, 120));
         hboxAddOfferButton.getChildren().add(saveOffer);
 
         VBox vboxAddOfferCenter = new VBox();
@@ -360,6 +369,34 @@ public class AppStart extends Application {
         addOfferStage.setScene(addOfferScene);
         addOfferStage.setResizable(false);
         addOfferStage.show();
+    }
+
+    private void noticeMessageBox(String title, String message) {
+        Stage noticeMessageStage = new Stage();
+        noticeMessageStage.initModality(Modality.APPLICATION_MODAL);
+
+        BorderPane borderPaneMessageBox = new BorderPane();
+
+        noticeMessageStage.setTitle(title);
+
+        Text messageText = new Text();
+        messageText.setWrappingWidth(200);
+        messageText.setText(message);
+
+        Button closeNoticeMessageButton = new Button();
+        closeNoticeMessageButton.setText("OK");
+        closeNoticeMessageButton.setPrefWidth(100);
+        closeNoticeMessageButton.setOnAction(e -> noticeMessageStage.close());
+
+        VBox vboxTextAndButton = new VBox();
+        vboxTextAndButton.setSpacing(10);
+        vboxTextAndButton.setAlignment(Pos.CENTER);
+        vboxTextAndButton.getChildren().addAll(messageText,closeNoticeMessageButton);
+
+        borderPaneMessageBox.setCenter(vboxTextAndButton);
+
+        noticeMessageStage.setScene(new Scene(borderPaneMessageBox, 250, message.length()));
+        noticeMessageStage.show();
     }
 
     private String addImageViaFileChooser() {

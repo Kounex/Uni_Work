@@ -46,6 +46,10 @@ public class IngameItem implements Serializable {
 
     }
 
+    public String getItemName() {
+        return this.itemName;
+    }
+
     public boolean getAuctionState() {
        return this.auction;
     }
