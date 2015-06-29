@@ -1,6 +1,7 @@
 package insanityFlyff;
 
-import com.sun.org.apache.xpath.internal.operations.Mod;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -17,9 +18,11 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,12 +38,20 @@ public class AppStart extends Application {
     List<IngameItem> allIngameItems = new ArrayList<>();
     ListView<IngameItem> itemListView = new ListView<>();
     ListView<Offer> itemOffersListView = new ListView<>();
-    ListView<IngameItem> itemShopHistoryView = new ListView<>();
+    ListView<SellHistory> itemShopHistoryView = new ListView<>();
     Label imageNameLabel = new Label();
     ImageView itemImage;
     String defaultImagePath = "insanityFlyff/images/404-not-found.jpg";
     String imagePathSelected = defaultImagePath;
     boolean conditionMet;
+
+    /**
+     * Those are attributes now, because for proper formatting the sellHistoryList, i need to get the width of the scene in which it is in
+     * but as the logic is needed, the hbox is defined earlier. I couldn't get the scene information before it has been created
+     * but because the hbox NEEDS to be defined earlier, i have to put it as an attribute so i can use it whenever i want
+     */
+    HBox hboxItemShopListView = new HBox();
+    boolean addedAlready = false;
 
 
     @Override
@@ -298,7 +309,6 @@ public class AppStart extends Application {
 
     private void showItemStage() {
         Stage showAuctionItemStage = new Stage();
-        showAuctionItemStage.setTitle("Current Offers");
 
         BorderPane borderPaneShowItem = new BorderPane();
 
@@ -349,6 +359,7 @@ public class AppStart extends Application {
         vboxItemImageLeft.getChildren().addAll(itemImage, hboxButtonsUnderImageLeft);
 
         if(currentItem.getAuctionState()) {
+            showAuctionItemStage.setTitle(this.itemListView.getSelectionModel().getSelectedItem().getItemName() + " [Auction]");
             Button addOfferToItem = new Button();
             addOfferToItem.setText("Add offer");
             addOfferToItem.setOnAction(a -> {
@@ -379,6 +390,10 @@ public class AppStart extends Application {
             vboxItemShowCenter.getChildren().addAll(hboxItemShowCenterListView, hboxItemShowCenterButtons);
             borderPaneShowItem.setCenter(vboxItemShowCenter);
         } else {
+            showAuctionItemStage.setTitle(this.itemListView.getSelectionModel().getSelectedItem().getItemName() + " [Shop]");
+
+            this.itemShopHistoryView.setItems(FXCollections.observableList(currentItem.getSellHistoryList()));
+
             Label totalAmountHeadlineLabel = new Label();
             totalAmountHeadlineLabel.setText("Amount available");
             totalAmountHeadlineLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 24");
@@ -454,14 +469,14 @@ public class AppStart extends Application {
             Button setShopPriceButton = new Button();
             setShopPriceButton.setText("Set Price");
             setShopPriceButton.setPrefWidth(100);
-            HBox.setMargin(setShopPriceButton, new Insets(0,0,0,10));
+            HBox.setMargin(setShopPriceButton, new Insets(0, 0, 0, 15));
             setShopPriceButton.setOnAction(e -> {
                 Stage setPriceStage = new Stage();
                 setPriceStage.initModality(Modality.APPLICATION_MODAL);
                 setPriceStage.setTitle("Shop Price");
 
                 BorderPane borderPaneShopPrice = new BorderPane();
-                borderPaneShopPrice.setPadding(new Insets(25,0,0,25));
+                borderPaneShopPrice.setPadding(new Insets(25, 0, 0, 25));
 
                 Label setShopPricePerinLabel = new Label();
                 setShopPricePerinLabel.setPrefWidth(50);
@@ -480,9 +495,9 @@ public class AppStart extends Application {
                 Button setShopPriceFinalButton = new Button();
                 setShopPriceFinalButton.setText("Set price");
                 setShopPriceFinalButton.setOnAction(a -> {
-                    if(!setShopPricePerinTextField.getText().isEmpty() || !setShopPricePenyaTextField.getText().isEmpty()) {
-                        if(Integer.parseInt(setShopPricePenyaTextField.getText()) >= 100000000) {
-                            int perinsViaWrapAround = Integer.parseInt(setShopPricePenyaTextField.getText())/100000000;
+                    if (!setShopPricePerinTextField.getText().isEmpty() || !setShopPricePenyaTextField.getText().isEmpty()) {
+                        if (Integer.parseInt(setShopPricePenyaTextField.getText()) >= 100000000) {
+                            int perinsViaWrapAround = Integer.parseInt(setShopPricePenyaTextField.getText()) / 100000000;
                             currentItem.updateShopPerin(Integer.parseInt(setShopPricePerinTextField.getText()) + perinsViaWrapAround);
                             currentItem.updateShopPenya(Integer.parseInt(setShopPricePenyaTextField.getText()) - perinsViaWrapAround * 100000000);
                         } else {
@@ -497,21 +512,40 @@ public class AppStart extends Application {
 
                 Tooltip tooltipPenyaTextField = new Tooltip();
                 tooltipPenyaTextField.setText("Value of 100.000.000 and above\nwill automatically be converted into Perins!");
+                /**
+                 * "Hack" to change the activation time for the tooltip to display. As seen, the activationTimer is a private field and usually can't be accessed
+                 * and changed. Via reflection it is possible to change its value even though its private. Java 9 will have the possibility to change this value without this
+                 * workaround
+                 */
+                try {
+                    Field fieldBehavior = tooltipPenyaTextField.getClass().getDeclaredField("BEHAVIOR");
+                    fieldBehavior.setAccessible(true);
+                    Object objBehavior = fieldBehavior.get(tooltipPenyaTextField);
+
+                    Field fieldTimer = objBehavior.getClass().getDeclaredField("activationTimer");
+                    fieldTimer.setAccessible(true);
+                    Timeline objTimer = (Timeline) fieldTimer.get(objBehavior);
+
+                    objTimer.getKeyFrames().clear();
+                    objTimer.getKeyFrames().add(new KeyFrame(new Duration(0)));
+                } catch (Exception a) {
+                    a.printStackTrace();
+                }
 
                 Button buttonOnlyToolTip = new Button();
                 buttonOnlyToolTip.setText("?");
                 buttonOnlyToolTip.setTooltip(tooltipPenyaTextField);
-                buttonOnlyToolTip.setStyle("-fx-background-radius: 10em;-fx-min-width: 3px;-fx-min-height: 3px;-fx-max-width: 30px;-fx-max-height: 30px;");
+                buttonOnlyToolTip.setStyle("-fx-background-radius: 15em;-fx-min-width: 3px;-fx-min-height: 3px;-fx-max-width: 33px;-fx-max-height: 33px;");
 
                 HBox hboxPerinLabelAndTextField = new HBox();
                 hboxPerinLabelAndTextField.getChildren().addAll(setShopPricePerinLabel, setShopPricePerinTextField);
 
                 HBox hboxPenyaLabelAndTextField = new HBox();
-                hboxPenyaLabelAndTextField.getChildren().addAll(setShopPricePenyaLabel, setShopPricePenyaTextField);
+                hboxPenyaLabelAndTextField.getChildren().addAll(setShopPricePenyaLabel, setShopPricePenyaTextField, buttonOnlyToolTip);
 
                 HBox hboxShopButtons = new HBox();
                 hboxShopButtons.setAlignment(Pos.CENTER);
-                hboxShopButtons.getChildren().addAll(setShopPriceFinalButton, buttonOnlyToolTip);
+                hboxShopButtons.getChildren().addAll(setShopPriceFinalButton);
 
                 VBox vboxShopPriceAllHbox = new VBox();
                 vboxShopPriceAllHbox.setSpacing(20);
@@ -520,6 +554,47 @@ public class AppStart extends Application {
                 borderPaneShopPrice.setCenter(vboxShopPriceAllHbox);
                 setPriceStage.setScene(new Scene(borderPaneShopPrice, 300, 160));
                 setPriceStage.show();
+            });
+
+            Button soldItemsButton = new Button();
+            soldItemsButton.setText("Sold");
+            soldItemsButton.setPrefWidth(100);
+            soldItemsButton.setOnAction(e -> {
+                Stage soldItemStage = new Stage();
+                soldItemStage.initModality(Modality.APPLICATION_MODAL);
+                soldItemStage.setTitle("Sold");
+
+                BorderPane borderPaneItemSold = new BorderPane();
+
+                TextField soldItemAmountTextField = new TextField();
+                soldItemAmountTextField.setPrefWidth(60);
+                soldItemAmountTextField.setMaxWidth(60);
+
+                Label soldItemAmountLabel = new Label();
+                soldItemAmountLabel.setText("out of " + currentItem.getAmountAvailable() + " available " + currentItem.getItemName() + "(s)");
+
+                Button soldItemAmountButton = new Button();
+                soldItemAmountButton.setText("Sold");
+                soldItemAmountButton.setOnAction(a -> {
+                    if (!soldItemAmountTextField.getText().isEmpty() && Integer.parseInt(soldItemAmountTextField.getText()) > 0 && Integer.parseInt(soldItemAmountTextField.getText()) <= currentItem.getAmountAvailable()) {
+                        currentItem.updateSellHistory(currentItem.getShopPerin(), currentItem.getShopPenya(), Integer.parseInt(soldItemAmountTextField.getText()));
+                        this.itemShopHistoryView.setItems(FXCollections.observableList(currentItem.getSellHistoryList()));
+                        totalAmountLabel.setText(String.valueOf(currentItem.getAmountAvailable()));
+                        currentItem.getSellHistoryList().forEach(System.out::println);
+                        soldItemStage.close();
+                    }
+                });
+
+                VBox vboxSoldItemAll = new VBox();
+                vboxSoldItemAll.setPadding(new Insets(15,15,15,15));
+                vboxSoldItemAll.setSpacing(15);
+                vboxSoldItemAll.setAlignment(Pos.CENTER);
+                vboxSoldItemAll.getChildren().addAll(soldItemAmountTextField, soldItemAmountLabel, soldItemAmountButton);
+
+                borderPaneItemSold.setCenter(vboxSoldItemAll);
+
+                soldItemStage.setScene(new Scene(borderPaneItemSold, soldItemAmountLabel.getText().length()*7, 150));
+                soldItemStage.show();
             });
 
             HBox hboxTotalAmountTextChangeButton = new HBox();
@@ -531,12 +606,21 @@ public class AppStart extends Application {
             hboxSoldAmountPerinPenyaSoldButton.setSpacing(10);
             hboxSoldAmountPerinPenyaSoldButton.getChildren().addAll(shopPerinHeadlineLabel, shopPerinLabel, shopPenyaHeadlineLabel, shopPenyaLabel, shopEachLabel, setShopPriceButton);
 
-            HBox hboxItemShopListView = new HBox();
+            HBox hboxSoldButtonOnly = new HBox();
+            hboxSoldButtonOnly.setPadding(new Insets(0, 0, 0, 352));
+            hboxSoldButtonOnly.getChildren().add(soldItemsButton);
+
+
+            if(!this.addedAlready) {
+                hboxItemShopListView.getChildren().add(this.itemShopHistoryView);
+            }
+
+            this.addedAlready = true;
 
             VBox vboxAllStuff = new VBox();
             vboxAllStuff.setPadding(new Insets(25, 0, 0, 50));
             vboxAllStuff.setSpacing(15);
-            vboxAllStuff.getChildren().addAll(totalAmountHeadlineLabel, hboxTotalAmountTextChangeButton, shopPriceLabel, hboxSoldAmountPerinPenyaSoldButton, hboxItemShopListView);
+            vboxAllStuff.getChildren().addAll(totalAmountHeadlineLabel, hboxTotalAmountTextChangeButton, shopPriceLabel, hboxSoldAmountPerinPenyaSoldButton, hboxSoldButtonOnly, hboxItemShopListView);
 
             borderPaneShowItem.setCenter(vboxAllStuff);
         }
@@ -547,6 +631,10 @@ public class AppStart extends Application {
             showAuctionItemStage.setScene(sceneShowItem);
         } else {
             Scene sceneShowItem = new Scene(borderPaneShowItem, this.itemImage.getImage().getWidth() + 600, this.itemImage.getImage().getHeight() + 250);
+            /**
+             * Here is the location why i needed to make the hbox as attribute!
+             */
+            this.itemShopHistoryView.setPrefSize(sceneShowItem.getWidth() - this.itemImage.getImage().getWidth() - 115, this.itemImage.getImage().getHeight()-50);
             showAuctionItemStage.setScene(sceneShowItem);
         }
         showAuctionItemStage.setResizable(false);
@@ -671,6 +759,7 @@ public class AppStart extends Application {
         borderPaneRenameItem.setPadding(new Insets(10,0,0,10));
 
         TextField renameTextField = new TextField();
+        renameTextField.setText(selectedItem.getItemName());
         renameTextField.setPrefWidth(250);
 
         Button renameButton = new Button();
@@ -684,8 +773,6 @@ public class AppStart extends Application {
                 });
                 if(this.conditionMet) {
                     selectedItem.updateItemName(renameTextField.getText());
-                    this.allIngameItems.remove(selectedItem);
-                    this.allIngameItems.add(selectedItem);
                     refreshItemList();
                     renameItemStage.close();
                 } else {
@@ -723,9 +810,9 @@ public class AppStart extends Application {
      * Everytime something is added/deleted from the ListView, call this method to see the change~
      */
     public void refreshItemList() {
-        this.allIngameItems.sort((s1,s2) -> s1.compareTo(s2));
+        this.allIngameItems.sort((s1, s2) -> s1.compareTo(s2));
+        this.itemListView.setItems(FXCollections.observableList(new ArrayList<IngameItem>()));
         this.itemListView.setItems(FXCollections.observableList(this.allIngameItems));
-
     }
 
     private void refreshItemOfferList(IngameItem currentItem) {

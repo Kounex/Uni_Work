@@ -2,9 +2,7 @@ package insanityFlyff;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by Kounex on 26.06.15.
@@ -13,12 +11,12 @@ public class IngameItem implements Serializable, Comparable {
     private String itemName;
     private String imageURL;
     private List<Offer> offerList = new ArrayList<>();
+    private List<SellHistory> sellHistoryList = new ArrayList<>();
     int amountAvailable;
     int amountSold;
     int shopPerin;
     int shopPenya;
     private boolean auction;
-    Map<Integer,Integer> sellHistory = new HashMap<>();
 
     public IngameItem(int amountAvailable, boolean auction, String itemName, String imageURL) {
         this.amountAvailable = amountAvailable;
@@ -55,8 +53,10 @@ public class IngameItem implements Serializable, Comparable {
         this.shopPenya = shopPenya;
     }
 
-    public void updateSellHistory(int amount, int price) {
-
+    public void updateSellHistory(int perinEach, int penyaEach, int amountSold) {
+        this.amountAvailable -= amountSold;
+        this.amountSold += amountSold;
+        this.sellHistoryList.add(new SellHistory(perinEach, penyaEach, amountSold));
     }
 
     public int getAmountAvailable() {
@@ -91,8 +91,8 @@ public class IngameItem implements Serializable, Comparable {
         return this.offerList;
     }
 
-    public Map<Integer, Integer> getSellHistory() {
-        return this.sellHistory;
+    public List<SellHistory> getSellHistoryList() {
+        return this.sellHistoryList;
     }
 
     @Override
@@ -102,9 +102,11 @@ public class IngameItem implements Serializable, Comparable {
 
     @Override
     public int compareTo(Object o) {
-        if(o instanceof IngameItem) {
+        int integerResult = ((Integer) this.getAmountAvailable()).compareTo(((IngameItem) o).getAmountAvailable());
+        if(integerResult==0) {
             return this.itemName.compareTo(((IngameItem) o).getItemName());
+        } else {
+            return integerResult;
         }
-        return -1;
     }
 }
