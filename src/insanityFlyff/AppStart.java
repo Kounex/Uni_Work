@@ -34,11 +34,12 @@ public class AppStart extends Application {
     List<IngameItem> allIngameItems = new ArrayList<>();
     ListView<IngameItem> itemListView = new ListView<>();
     ListView<Offer> itemOffersListView = new ListView<>();
+    ListView<Offer> itemShopHistoryView = new ListView<>();
     Label imageNameLabel = new Label();
     ImageView itemImage;
     String defaultImagePath = "insanityFlyff/images/404-not-found.jpg";
     String imagePathSelected = defaultImagePath;
-    boolean newItem;
+    boolean conditionMet;
 
 
     @Override
@@ -155,14 +156,14 @@ public class AppStart extends Application {
         Button createItemAdd = new Button();
         createItemAdd.setText("Create");
         createItemAdd.setOnAction(a -> {
-            newItem = true;
+            conditionMet = true;
             this.itemListView.getItems().forEach(c -> {
                 if (itemNameTextField.getText().equals(c.getItemName())) {
                     noticeMessageBox("Error", "This item already exists! Please specify another name or use the item which is already in the list.");
-                    newItem = false;
+                    conditionMet = false;
                 }
             });
-            if (!itemNameTextField.getText().isEmpty() && !itemAmountTextField.getText().isEmpty() && newItem) {
+            if (!itemNameTextField.getText().isEmpty() && !itemAmountTextField.getText().isEmpty() && conditionMet) {
                 this.allIngameItems.add(new IngameItem(Integer.parseInt(itemAmountTextField.getText()), checkBoxAuction.isSelected(), itemNameTextField.getText(), imagePathSelected));
                 this.refreshItemList();
                 addItemStage.close();
