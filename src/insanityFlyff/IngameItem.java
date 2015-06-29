@@ -9,13 +9,14 @@ import java.util.Map;
 /**
  * Created by Kounex on 26.06.15.
  */
-public class IngameItem implements Serializable {
+public class IngameItem implements Serializable, Comparable {
     private String itemName;
     private String imageURL;
     private List<Offer> offerList = new ArrayList<>();
     int amountAvailable;
     int amountSold;
-    int shopPrice;
+    int shopPerin;
+    int shopPenya;
     private boolean auction;
     Map<Integer,Integer> sellHistory = new HashMap<>();
 
@@ -42,8 +43,36 @@ public class IngameItem implements Serializable {
         this.imageURL = imageURL;
     }
 
+    public void updateAmountAvailable(int amountAvailable) {
+        this.amountAvailable = amountAvailable;
+    }
+
+    public void updateShopPerin(int shopPerin) {
+        this.shopPerin = shopPerin;
+    }
+
+    public void updateShopPenya(int shopPenya) {
+        this.shopPenya = shopPenya;
+    }
+
     public void updateSellHistory(int amount, int price) {
 
+    }
+
+    public int getAmountAvailable() {
+        return this.amountAvailable;
+    }
+
+    public int getAmountSold() {
+        return this.amountSold;
+    }
+
+    public int getShopPerin() {
+        return this.shopPerin;
+    }
+
+    public int getShopPenya() {
+        return this.shopPenya;
     }
 
     public String getItemName() {
@@ -62,8 +91,20 @@ public class IngameItem implements Serializable {
         return this.offerList;
     }
 
+    public Map<Integer, Integer> getSellHistory() {
+        return this.sellHistory;
+    }
+
     @Override
     public String toString() {
         return this.itemName;
+    }
+
+    @Override
+    public int compareTo(Object o) {
+        if(o instanceof IngameItem) {
+            return this.itemName.compareTo(((IngameItem) o).getItemName());
+        }
+        return -1;
     }
 }

@@ -1,5 +1,6 @@
 package insanityFlyff;
 
+import com.sun.org.apache.xpath.internal.operations.Mod;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
@@ -34,7 +35,7 @@ public class AppStart extends Application {
     List<IngameItem> allIngameItems = new ArrayList<>();
     ListView<IngameItem> itemListView = new ListView<>();
     ListView<Offer> itemOffersListView = new ListView<>();
-    ListView<Offer> itemShopHistoryView = new ListView<>();
+    ListView<IngameItem> itemShopHistoryView = new ListView<>();
     Label imageNameLabel = new Label();
     ImageView itemImage;
     String defaultImagePath = "insanityFlyff/images/404-not-found.jpg";
@@ -54,11 +55,11 @@ public class AppStart extends Application {
          * ListView settings
          */
 
-        itemListView.setStyle("-fx-font-weight: bold; -fx-font-size: 16");
+        this.itemListView.setStyle("-fx-font-weight: bold; -fx-font-size: 16");
 
-        itemOffersListView.setStyle("-fx-font-weight: bold;-fx-font-size: 16");
+        this.itemOffersListView.setStyle("-fx-font-weight: bold;-fx-font-size: 16");
 
-        itemListView.setOnMouseClicked(c -> {
+        this.itemListView.setOnMouseClicked(c -> {
             if (c.getButton() == MouseButton.PRIMARY) {
                 if (c.getClickCount() == 2) {
                     showItemStage();
@@ -80,26 +81,118 @@ public class AppStart extends Application {
         addItemButton.setPrefWidth(150);
         addItemButton.setOnAction(e -> addItemStage());
 
+        Button renameItemButton = new Button();
+        renameItemButton.setText("Rename item");
+        renameItemButton.setPrefWidth(150);
+        renameItemButton.setOnAction(e -> {
+            if (this.itemListView.getSelectionModel().getSelectedItems() != null) {
+                renameItem(this.itemListView.getSelectionModel().getSelectedItem());
+            }
+        });
+
         Button deleteItemButton = new Button();
         deleteItemButton.setText("Delete Item");
         deleteItemButton.setPrefWidth(150);
         deleteItemButton.setOnAction(e -> {
-            this.allIngameItems.remove(itemListView.getSelectionModel().getSelectedItem());
-            this.refreshItemList();
+            Stage deleteItemStage = new Stage();
+            deleteItemStage.initModality(Modality.APPLICATION_MODAL);
+            deleteItemStage.setTitle("Warning");
+
+            BorderPane borderPaneDeleteItem = new BorderPane();
+            //borderPaneDeleteAllItems.setPadding(new Insets(10, 0, 0, 0));
+
+            Text deleteItemText = new Text("Are you sure you want to delete the selected item? This action can't be undone!");
+            deleteItemText.setWrappingWidth(225);
+
+            Button deleteItemYesButton = new Button();
+            deleteItemYesButton.setText("Yes");
+            deleteItemYesButton.setPrefWidth(75);
+            deleteItemYesButton.setOnAction(a -> {
+                this.allIngameItems.remove(this.itemListView.getSelectionModel().getSelectedItem());
+                this.refreshItemList();
+                deleteItemStage.close();
+            });
+
+            Button deleteItemNoButton = new Button();
+            deleteItemNoButton.setText("No");
+            deleteItemNoButton.setPrefWidth(75);
+            deleteItemNoButton.setOnAction(a -> {
+                deleteItemStage.close();
+            });
+
+            HBox hboxForButtons = new HBox();
+            hboxForButtons.setSpacing(15);
+            hboxForButtons.setAlignment(Pos.CENTER);
+            hboxForButtons.getChildren().addAll(deleteItemYesButton, deleteItemNoButton);
+
+            VBox vboxForTextAndButtons = new VBox();
+            vboxForTextAndButtons.setSpacing(20);
+            vboxForTextAndButtons.setPadding(new Insets(15, 15, 0, 15));
+            vboxForTextAndButtons.getChildren().addAll(deleteItemText, hboxForButtons);
+
+            borderPaneDeleteItem.setCenter(vboxForTextAndButtons);
+            deleteItemStage.setScene(new Scene(borderPaneDeleteItem, 250, 125));
+            deleteItemStage.show();
         });
 
-        VBox vboxBottom = new VBox();
+        Button deleteAllItemsButton = new Button();
+        deleteAllItemsButton.setText("Delete all");
+        deleteAllItemsButton.setPrefWidth(150);
+        deleteAllItemsButton.setOnAction(e -> {
+            Stage deleteAllItemsStage = new Stage();
+            deleteAllItemsStage.initModality(Modality.APPLICATION_MODAL);
+            deleteAllItemsStage.setTitle("Warning");
+
+            BorderPane borderPaneDeleteAllItems = new BorderPane();
+            //borderPaneDeleteAllItems.setPadding(new Insets(10, 0, 0, 0));
+
+            Text deleteAllItemsText = new Text("Are you sure you want to delete all items? This action can't be undone!");
+            deleteAllItemsText.setWrappingWidth(225);
+
+            Button deleteAllItemsYesButton = new Button();
+            deleteAllItemsYesButton.setText("Yes");
+            deleteAllItemsYesButton.setPrefWidth(75);
+            deleteAllItemsYesButton.setOnAction(a -> {
+                this.allIngameItems.removeAll(allIngameItems);
+                this.refreshItemList();
+                deleteAllItemsStage.close();
+            });
+
+            Button deleteAllItemsNoButton = new Button();
+            deleteAllItemsNoButton.setText("No");
+            deleteAllItemsNoButton.setPrefWidth(75);
+            deleteAllItemsNoButton.setOnAction(a -> {
+                deleteAllItemsStage.close();
+            });
+
+            HBox hboxForButtons = new HBox();
+            hboxForButtons.setSpacing(15);
+            hboxForButtons.setAlignment(Pos.CENTER);
+            hboxForButtons.getChildren().addAll(deleteAllItemsYesButton, deleteAllItemsNoButton);
+
+            VBox vboxForTextAndButtons = new VBox();
+            vboxForTextAndButtons.setSpacing(20);
+            vboxForTextAndButtons.setPadding(new Insets(15, 15, 0, 15));
+            vboxForTextAndButtons.getChildren().addAll(deleteAllItemsText, hboxForButtons);
+
+            borderPaneDeleteAllItems.setCenter(vboxForTextAndButtons);
+            deleteAllItemsStage.setScene(new Scene(borderPaneDeleteAllItems, 250, 100));
+            deleteAllItemsStage.show();
+        });
+
+        VBox vboxLeft = new VBox();
         //vboxBottom.setStyle("-fx-background-color: linear-gradient(#686868 0%, #232723 25%, #373837 75%, #757575 100%)");
         //vboxBottom.setStyle("-fx-background-color: linear-gradient(#C8DCA6 0%, #DBFFC0 25%, #E0FFCF 75%, #FFFFFF 100%)");
-        vboxBottom.setStyle("-fx-background-image: url('insanityFlyff/images/insanity_sidebar.png');-fx-background-size: cover");
-        vboxBottom.setSpacing(15);
-        vboxBottom.setPadding(new Insets(50, 10, 10, 10));
-        vboxBottom.getChildren().add(addItemButton);
-        vboxBottom.getChildren().add(deleteItemButton);
+        vboxLeft.setStyle("-fx-background-image: url('insanityFlyff/images/insanity_sidebar.png');-fx-background-size: cover");
+        vboxLeft.setSpacing(15);
+        vboxLeft.setPadding(new Insets(50, 10, 10, 10));
+        vboxLeft.getChildren().addAll(addItemButton, renameItemButton, deleteItemButton, deleteAllItemsButton);
+
+        VBox.setMargin(deleteAllItemsButton, new Insets(150, 0, 0, 0));
 
         borderPane.setTop(topImage);
-        borderPane.setLeft(vboxBottom);
-        borderPane.setCenter(itemListView);
+        borderPane.setLeft(vboxLeft);
+        borderPane.setCenter(this.itemListView);
 
         Scene scene = new Scene(borderPane,680,800);
 
@@ -139,11 +232,11 @@ public class AppStart extends Application {
         selectItemImage.setOnAction(e -> {
             String imageName = this.addImageViaFileChooser();
             if (!imageName.equals("None selected")) {
-                imageNameLabel.setText("Image name:\n" + imageName);
+                this.imageNameLabel.setText("Image name:\n" + imageName);
             } else {
-                imageNameLabel.setText("Image name:\n None selected");
+                this.imageNameLabel.setText("Image name:\n None selected");
             }
-            imageNameLabel.setStyle("-fx-font-weight: bold; -fx-font-style: oblique");
+            this.imageNameLabel.setStyle("-fx-font-weight: bold; -fx-font-style: oblique");
         });
 
         HBox hboxForImageButton = new HBox();
@@ -151,21 +244,22 @@ public class AppStart extends Application {
         hboxForImageButton.getChildren().add(selectItemImage);
 
         VBox vboxForImageButton = new VBox();
-        vboxForImageButton.getChildren().addAll(hboxForImageButton, imageNameLabel);
+        vboxForImageButton.getChildren().addAll(hboxForImageButton, this.imageNameLabel);
 
         Button createItemAdd = new Button();
         createItemAdd.setText("Create");
         createItemAdd.setOnAction(a -> {
-            conditionMet = true;
+            this.conditionMet = true;
             this.itemListView.getItems().forEach(c -> {
                 if (itemNameTextField.getText().equals(c.getItemName())) {
                     noticeMessageBox("Error", "This item already exists! Please specify another name or use the item which is already in the list.");
-                    conditionMet = false;
+                    this.conditionMet = false;
                 }
             });
-            if (!itemNameTextField.getText().isEmpty() && !itemAmountTextField.getText().isEmpty() && conditionMet) {
+            if (!itemNameTextField.getText().isEmpty() && !itemAmountTextField.getText().isEmpty() && this.conditionMet) {
                 this.allIngameItems.add(new IngameItem(Integer.parseInt(itemAmountTextField.getText()), checkBoxAuction.isSelected(), itemNameTextField.getText(), imagePathSelected));
                 this.refreshItemList();
+                this.imageNameLabel.setText("");
                 addItemStage.close();
             }
         });
@@ -192,6 +286,10 @@ public class AppStart extends Application {
         borderPaneAddItem.setBottom(hboxItemAddBottom);
 
         Scene sceneItemAdd = new Scene(borderPaneAddItem,550,200);
+
+        addItemStage.setOnCloseRequest(e -> {
+            this.imageNameLabel.setText("");
+        });
 
         addItemStage.setScene(sceneItemAdd);
         addItemStage.setResizable(false);
@@ -267,7 +365,7 @@ public class AppStart extends Application {
             this.refreshItemOfferList(currentItem);
 
             HBox hboxItemShowCenterListView = new HBox();
-            itemOffersListView.setPrefWidth(itemImage.getImage().getWidth()+200);
+            this.itemOffersListView.setPrefWidth(this.itemImage.getImage().getWidth()+200);
             hboxItemShowCenterListView.setPrefHeight(this.itemImage.getImage().getHeight());
             hboxItemShowCenterListView.getChildren().add(this.itemOffersListView);
 
@@ -281,12 +379,176 @@ public class AppStart extends Application {
             vboxItemShowCenter.getChildren().addAll(hboxItemShowCenterListView, hboxItemShowCenterButtons);
             borderPaneShowItem.setCenter(vboxItemShowCenter);
         } else {
-//            HBox amountChange
+            Label totalAmountHeadlineLabel = new Label();
+            totalAmountHeadlineLabel.setText("Amount available");
+            totalAmountHeadlineLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 24");
+
+            Label totalAmountLabel = new Label();
+            totalAmountLabel.setPrefWidth(150);
+            totalAmountLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16;-fx-text-fill: limegreen");
+            totalAmountLabel.setText(String.valueOf(currentItem.getAmountAvailable()));
+
+            Label shopPriceLabel = new Label();
+            shopPriceLabel.setText("Shop Price");
+            shopPriceLabel.setPadding(new Insets(25, 0, 0, 0));
+            shopPriceLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 24");
+
+            Label shopPerinHeadlineLabel = new Label();
+            shopPerinHeadlineLabel.setText("Perin: ");
+            shopPerinHeadlineLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16");
+
+            Label shopPerinLabel = new Label();
+            shopPerinLabel.setPrefWidth(50);
+            shopPerinLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16;-fx-text-fill: cornflowerblue");
+            shopPerinLabel.setText(String.valueOf(currentItem.getShopPerin()));
+
+            Label shopPenyaHeadlineLabel = new Label();
+            shopPenyaHeadlineLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16");
+            shopPenyaHeadlineLabel.setText("Penya: ");
+
+            Label shopPenyaLabel = new Label();
+            shopPenyaLabel.setPrefWidth(100);
+            shopPenyaLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16;-fx-text-fill: cornflowerblue");
+            shopPenyaLabel.setText(String.valueOf(currentItem.getShopPenya()));
+
+            Label shopEachLabel = new Label();
+            shopEachLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16");
+            shopEachLabel.setText("each");
+
+            Button changeAmountButton = new Button();
+            changeAmountButton.setText("Change");
+            HBox.setMargin(changeAmountButton, new Insets(0, 0, 0, 185));
+            changeAmountButton.setPrefWidth(100);
+            changeAmountButton.setOnAction(e -> {
+                Stage changeAmountStage = new Stage();
+                changeAmountStage.initModality(Modality.APPLICATION_MODAL);
+                changeAmountStage.setTitle("Change amount");
+
+                BorderPane borderPaneChangeAmount = new BorderPane();
+
+                TextField changeAmountTextField = new TextField();
+                changeAmountTextField.setMaxWidth(60);
+
+                Button changeAmountFinalButton = new Button();
+                changeAmountFinalButton.setText("Change");
+                changeAmountFinalButton.setOnAction(a -> {
+                    if (changeAmountTextField.getText() != null) {
+                        currentItem.updateAmountAvailable(Integer.parseInt(changeAmountTextField.getText()));
+                        totalAmountLabel.setText(changeAmountTextField.getText());
+                        changeAmountStage.close();
+                    }
+                });
+
+                HBox hboxForTextFieldAndButton = new HBox();
+                hboxForTextFieldAndButton.setSpacing(15);
+                hboxForTextFieldAndButton.setPadding(new Insets(15, 15, 0, 15));
+                hboxForTextFieldAndButton.getChildren().addAll(changeAmountTextField, changeAmountFinalButton);
+
+                borderPaneChangeAmount.setCenter(hboxForTextFieldAndButton);
+
+                changeAmountStage.setScene(new Scene(borderPaneChangeAmount, 175, 50));
+                changeAmountStage.show();
+                this.noticeMessageBox("Warning", "Careful! Please just change the amount via this button if the amount of that item changed without selling them! e.g. got more or spend some.");
+            });
+
+            Button setShopPriceButton = new Button();
+            setShopPriceButton.setText("Set Price");
+            setShopPriceButton.setPrefWidth(100);
+            HBox.setMargin(setShopPriceButton, new Insets(0,0,0,10));
+            setShopPriceButton.setOnAction(e -> {
+                Stage setPriceStage = new Stage();
+                setPriceStage.initModality(Modality.APPLICATION_MODAL);
+                setPriceStage.setTitle("Shop Price");
+
+                BorderPane borderPaneShopPrice = new BorderPane();
+                borderPaneShopPrice.setPadding(new Insets(25,0,0,25));
+
+                Label setShopPricePerinLabel = new Label();
+                setShopPricePerinLabel.setPrefWidth(50);
+                setShopPricePerinLabel.setText("Perin:");
+
+                Label setShopPricePenyaLabel = new Label();
+                setShopPricePenyaLabel.setPrefWidth(50);
+                setShopPricePenyaLabel.setText("Penya:");
+
+                TextField setShopPricePerinTextField = new TextField();
+                setShopPricePerinTextField.setText("0");
+
+                TextField setShopPricePenyaTextField = new TextField();
+                setShopPricePenyaTextField.setText("0");
+
+                Button setShopPriceFinalButton = new Button();
+                setShopPriceFinalButton.setText("Set price");
+                setShopPriceFinalButton.setOnAction(a -> {
+                    if(!setShopPricePerinTextField.getText().isEmpty() || !setShopPricePenyaTextField.getText().isEmpty()) {
+                        if(Integer.parseInt(setShopPricePenyaTextField.getText()) >= 100000000) {
+                            int perinsViaWrapAround = Integer.parseInt(setShopPricePenyaTextField.getText())/100000000;
+                            currentItem.updateShopPerin(Integer.parseInt(setShopPricePerinTextField.getText()) + perinsViaWrapAround);
+                            currentItem.updateShopPenya(Integer.parseInt(setShopPricePenyaTextField.getText()) - perinsViaWrapAround * 100000000);
+                        } else {
+                            currentItem.updateShopPerin(Integer.parseInt(setShopPricePerinTextField.getText()));
+                            currentItem.updateShopPenya(Integer.parseInt(setShopPricePenyaTextField.getText()));
+                        }
+                        shopPerinLabel.setText(String.valueOf(currentItem.getShopPerin()));
+                        shopPenyaLabel.setText(String.valueOf(currentItem.getShopPenya()));
+                        setPriceStage.close();
+                    }
+                });
+
+                Tooltip tooltipPenyaTextField = new Tooltip();
+                tooltipPenyaTextField.setText("Value of 100.000.000 and above\nwill automatically be converted into Perins!");
+
+                Button buttonOnlyToolTip = new Button();
+                buttonOnlyToolTip.setText("?");
+                buttonOnlyToolTip.setTooltip(tooltipPenyaTextField);
+                buttonOnlyToolTip.setStyle("-fx-background-radius: 10em;-fx-min-width: 3px;-fx-min-height: 3px;-fx-max-width: 30px;-fx-max-height: 30px;");
+
+                HBox hboxPerinLabelAndTextField = new HBox();
+                hboxPerinLabelAndTextField.getChildren().addAll(setShopPricePerinLabel, setShopPricePerinTextField);
+
+                HBox hboxPenyaLabelAndTextField = new HBox();
+                hboxPenyaLabelAndTextField.getChildren().addAll(setShopPricePenyaLabel, setShopPricePenyaTextField);
+
+                HBox hboxShopButtons = new HBox();
+                hboxShopButtons.setAlignment(Pos.CENTER);
+                hboxShopButtons.getChildren().addAll(setShopPriceFinalButton, buttonOnlyToolTip);
+
+                VBox vboxShopPriceAllHbox = new VBox();
+                vboxShopPriceAllHbox.setSpacing(20);
+                vboxShopPriceAllHbox.getChildren().addAll(hboxPerinLabelAndTextField, hboxPenyaLabelAndTextField, hboxShopButtons);
+
+                borderPaneShopPrice.setCenter(vboxShopPriceAllHbox);
+                setPriceStage.setScene(new Scene(borderPaneShopPrice, 300, 160));
+                setPriceStage.show();
+            });
+
+            HBox hboxTotalAmountTextChangeButton = new HBox();
+            hboxTotalAmountTextChangeButton.setSpacing(20);
+            hboxTotalAmountTextChangeButton.getChildren().addAll(totalAmountLabel, changeAmountButton);
+
+            HBox hboxSoldAmountPerinPenyaSoldButton = new HBox();
+            //hboxSoldAmountPerinPenyaSoldButton.setPadding(new Insets(20,0,0,0));
+            hboxSoldAmountPerinPenyaSoldButton.setSpacing(10);
+            hboxSoldAmountPerinPenyaSoldButton.getChildren().addAll(shopPerinHeadlineLabel, shopPerinLabel, shopPenyaHeadlineLabel, shopPenyaLabel, shopEachLabel, setShopPriceButton);
+
+            HBox hboxItemShopListView = new HBox();
+
+            VBox vboxAllStuff = new VBox();
+            vboxAllStuff.setPadding(new Insets(25, 0, 0, 50));
+            vboxAllStuff.setSpacing(15);
+            vboxAllStuff.getChildren().addAll(totalAmountHeadlineLabel, hboxTotalAmountTextChangeButton, shopPriceLabel, hboxSoldAmountPerinPenyaSoldButton, hboxItemShopListView);
+
+            borderPaneShowItem.setCenter(vboxAllStuff);
         }
 
         borderPaneShowItem.setLeft(vboxItemImageLeft);
-        Scene sceneShowItem = new Scene(borderPaneShowItem,itemImage.getImage().getWidth()+700,itemImage.getImage().getHeight()+100);
-        showAuctionItemStage.setScene(sceneShowItem);
+        if(currentItem.getAuctionState()) {
+            Scene sceneShowItem = new Scene(borderPaneShowItem, this.itemImage.getImage().getWidth() + 700, this.itemImage.getImage().getHeight() + 100);
+            showAuctionItemStage.setScene(sceneShowItem);
+        } else {
+            Scene sceneShowItem = new Scene(borderPaneShowItem, this.itemImage.getImage().getWidth() + 600, this.itemImage.getImage().getHeight() + 250);
+            showAuctionItemStage.setScene(sceneShowItem);
+        }
         showAuctionItemStage.setResizable(false);
         showAuctionItemStage.show();
     }
@@ -396,8 +658,50 @@ public class AppStart extends Application {
 
         borderPaneMessageBox.setCenter(vboxTextAndButton);
 
-        noticeMessageStage.setScene(new Scene(borderPaneMessageBox, 250, message.length()));
+        noticeMessageStage.setScene(new Scene(borderPaneMessageBox, 250, 75+(message.length()/35)*25));
         noticeMessageStage.show();
+    }
+
+    private void renameItem(IngameItem selectedItem) {
+        Stage renameItemStage = new Stage();
+        renameItemStage.setTitle("Rename item");
+        renameItemStage.initModality(Modality.APPLICATION_MODAL);
+
+        BorderPane borderPaneRenameItem = new BorderPane();
+        borderPaneRenameItem.setPadding(new Insets(10,0,0,10));
+
+        TextField renameTextField = new TextField();
+        renameTextField.setPrefWidth(250);
+
+        Button renameButton = new Button();
+        renameButton.setText("Rename");
+        renameButton.setOnAction(e -> {
+            if(!renameTextField.getText().isEmpty()) {
+                this.conditionMet = true;
+                this.itemListView.getItems().forEach(a -> {
+                    if(renameTextField.getText().equals(a.getItemName()))
+                        this.conditionMet = false;
+                });
+                if(this.conditionMet) {
+                    selectedItem.updateItemName(renameTextField.getText());
+                    this.allIngameItems.remove(selectedItem);
+                    this.allIngameItems.add(selectedItem);
+                    refreshItemList();
+                    renameItemStage.close();
+                } else {
+                    noticeMessageBox("Error", "This name is already in use!");
+                }
+            }
+        });
+
+        HBox hboxforTextFieldAndButton = new HBox();
+        hboxforTextFieldAndButton.setSpacing(15);
+        hboxforTextFieldAndButton.getChildren().addAll(renameTextField,renameButton);
+
+        borderPaneRenameItem.setCenter(hboxforTextFieldAndButton);
+
+        renameItemStage.setScene(new Scene(borderPaneRenameItem, 350, 45));
+        renameItemStage.show();
     }
 
     private String addImageViaFileChooser() {
@@ -411,7 +715,6 @@ public class AppStart extends Application {
                 e.printStackTrace();
             }
         }
-        System.out.println("lol");
         this.imagePathSelected = this.defaultImagePath;
         return "None selected";
     }
@@ -420,11 +723,13 @@ public class AppStart extends Application {
      * Everytime something is added/deleted from the ListView, call this method to see the change~
      */
     public void refreshItemList() {
-        itemListView.setItems(FXCollections.observableList(this.allIngameItems));
+        this.allIngameItems.sort((s1,s2) -> s1.compareTo(s2));
+        this.itemListView.setItems(FXCollections.observableList(this.allIngameItems));
+
     }
 
     private void refreshItemOfferList(IngameItem currentItem) {
-        itemOffersListView.setItems(FXCollections.observableList(currentItem.getOfferList()));
+        this.itemOffersListView.setItems(FXCollections.observableList(currentItem.getOfferList()));
     }
 
     public void transmitItemList(List<IngameItem> allIngameItems) {
