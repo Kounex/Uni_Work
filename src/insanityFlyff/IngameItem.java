@@ -11,6 +11,7 @@ public class IngameItem implements Serializable, Comparable {
     private String itemName;
     private String imageURL;
     private List<Offer> offerList = new ArrayList<>();
+    private Offer offerWon;
     private List<SellHistory> sellHistoryList = new ArrayList<>();
     int amountAvailable;
     int amountSold;
@@ -59,6 +60,14 @@ public class IngameItem implements Serializable, Comparable {
         this.sellHistoryList.add(new SellHistory(perinEach, penyaEach, amountSold));
     }
 
+    public void updateOfferWon(Offer offerWon) {
+        this.offerWon = offerWon;
+    }
+
+    public Offer getOfferWon() {
+        return this.offerWon;
+    }
+
     public int getAmountAvailable() {
         return this.amountAvailable;
     }
@@ -97,7 +106,11 @@ public class IngameItem implements Serializable, Comparable {
 
     @Override
     public String toString() {
-        return this.itemName;
+        if(this.amountAvailable > 0) {
+            return this.itemName;
+        } else {
+            return "[SOLD] " + this.itemName;
+        }
     }
 
     @Override
@@ -106,7 +119,7 @@ public class IngameItem implements Serializable, Comparable {
         if(integerResult==0) {
             return this.itemName.compareTo(((IngameItem) o).getItemName());
         } else {
-            return integerResult;
+            return integerResult*-1;
         }
     }
 }

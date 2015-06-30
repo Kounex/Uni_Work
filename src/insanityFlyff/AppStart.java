@@ -4,13 +4,16 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
+import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -18,8 +21,10 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 import javafx.util.Duration;
 
+import javax.swing.border.Border;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -37,6 +42,7 @@ public class AppStart extends Application {
 
     List<IngameItem> allIngameItems = new ArrayList<>();
     ListView<IngameItem> itemListView = new ListView<>();
+//    TableView<Offer> itemOffersListView = new TableView<>();
     ListView<Offer> itemOffersListView = new ListView<>();
     ListView<SellHistory> itemShopHistoryView = new ListView<>();
     Label imageNameLabel = new Label();
@@ -44,19 +50,13 @@ public class AppStart extends Application {
     String defaultImagePath = "insanityFlyff/images/404-not-found.jpg";
     String imagePathSelected = defaultImagePath;
     boolean conditionMet;
-
-    /**
-     * Those are attributes now, because for proper formatting the sellHistoryList, i need to get the width of the scene in which it is in
-     * but as the logic is needed, the hbox is defined earlier. I couldn't get the scene information before it has been created
-     * but because the hbox NEEDS to be defined earlier, i have to put it as an attribute so i can use it whenever i want
-     */
-    HBox hboxItemShopListView = new HBox();
-    boolean addedAlready = false;
-
+    Label totalPerinAmountLabel = new Label("0");
+    Label totalPenyaAmountLabel = new Label("0");
+    ListView totalTradeItemsListView = new ListView();
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        primaryStage.setTitle("Insanity Flyff - Offer Control");
+        primaryStage.setTitle("Insanity Flyff - Shop Control");
         LoadSaveItems.loadObject(this.allIngameItems, this);
         primaryStage.setOnCloseRequest(c -> {
             LoadSaveItems.saveObject(this.allIngameItems);
@@ -65,10 +65,43 @@ public class AppStart extends Application {
         /**
          * ListView settings
          */
+        this.itemListView.setStyle("-fx-font-weight: bold;-fx-font-size: 16");
+        this.itemOffersListView.setStyle("-fx-font-weight: bold");
+        this.totalTradeItemsListView.setStyle("-fx-font-weight: bold");
+        this.itemShopHistoryView.setStyle("-fx-font-weight: bold;-fx-font-size: 14");
 
-        this.itemListView.setStyle("-fx-font-weight: bold; -fx-font-size: 16");
+        /**
+         * Total Penya/Perin Labels settings
+         */
+        this.totalPerinAmountLabel.setStyle("-fx-text-fill: blue");
+        this.totalPenyaAmountLabel.setStyle("-fx-text-fill: blue");
 
-        this.itemOffersListView.setStyle("-fx-font-weight: bold;-fx-font-size: 16");
+        /**
+         * The SimpleStringProperty which would be used in order to correctly use the TableView are not
+         * serializable, therefore it cannot be saved. Thats why ListView is going to be used again
+         */
+
+//        TableColumn perinCol = new TableColumn("Perin");
+//        perinCol.setMinWidth(100);
+//        perinCol.setCellValueFactory(
+//                new PropertyValueFactory<Offer, String>("perin"));
+//
+//        TableColumn penyaCol = new TableColumn("Penya");
+//        penyaCol.setMinWidth(100);
+//        penyaCol.setCellValueFactory(
+//                new PropertyValueFactory<Offer, String>("penya"));
+//
+//        TableColumn tradeCol = new TableColumn("Trade");
+//        tradeCol.setMinWidth(100);
+//        tradeCol.setCellValueFactory(
+//                new PropertyValueFactory<Offer, String>("tradeItems"));
+//
+//        TableColumn bidderNameCol = new TableColumn("Bidder");
+//        bidderNameCol.setMinWidth(100);
+//        bidderNameCol.setCellValueFactory(
+//                new PropertyValueFactory<Offer, String>("bidderName"));
+//
+//        this.itemOffersListView.getColumns().addAll(perinCol, penyaCol, tradeCol, bidderNameCol);
 
         this.itemListView.setOnMouseClicked(c -> {
             if (c.getButton() == MouseButton.PRIMARY) {
@@ -79,6 +112,22 @@ public class AppStart extends Application {
         });
 
         BorderPane borderPane = new BorderPane();
+
+        Label totalEarningsHeadlineLabel = new Label();
+        totalEarningsHeadlineLabel.setText("Total earnings");
+        totalEarningsHeadlineLabel.setStyle("-fx-font-weight: bold;-fx-underline: true");
+
+        Label totalPerinAmountheadlineLabel = new Label();
+        totalPerinAmountheadlineLabel.setText("Perin");
+        totalPerinAmountheadlineLabel.setStyle("-fx-font-weight: bold");
+
+        Label totalPenyaAmountheadlineLabel = new Label();
+        totalPenyaAmountheadlineLabel.setText("Penya");
+        totalPenyaAmountheadlineLabel.setStyle("-fx-font-weight: bold");
+
+        Label madeBy = new Label();
+        madeBy.setText("Coded by, Kounex");
+        madeBy.setStyle("-fx-font-weight: bolder;-fx-font-family: monospace");
 
         HBox topImage = new HBox();
         topImage.setPadding(new Insets(240, 0, 0, 0));
@@ -106,6 +155,7 @@ public class AppStart extends Application {
         deleteItemButton.setPrefWidth(150);
         deleteItemButton.setOnAction(e -> {
             Stage deleteItemStage = new Stage();
+            deleteItemStage.setResizable(false);
             deleteItemStage.initModality(Modality.APPLICATION_MODAL);
             deleteItemStage.setTitle("Warning");
 
@@ -191,15 +241,55 @@ public class AppStart extends Application {
             deleteAllItemsStage.show();
         });
 
+        Button showTotalTradeItemsButton = new Button();
+        showTotalTradeItemsButton.setText("Trade items");
+        showTotalTradeItemsButton.setPrefWidth(150);
+        showTotalTradeItemsButton.setOnAction(e -> {
+            Stage showTotalTradeItemsStage = new Stage();
+            showTotalTradeItemsStage.setTitle("All trade items");
+            showTotalTradeItemsStage.initModality(Modality.APPLICATION_MODAL);
+            showTotalTradeItemsStage.setResizable(false);
+
+            BorderPane borderPaneTotalTradeItems = new BorderPane();
+            borderPaneTotalTradeItems.setPadding(new Insets(25,25,25,25));
+
+            List<String> localAllTradesList = new ArrayList<>();
+            for(IngameItem ing:this.allIngameItems) {
+                if(ing.getOfferWon()!=null) {
+                    localAllTradesList.add("Got: -->" + ing.getOfferWon().getTradeItems() + "\nby selling: -->" + ing.getItemName() + "<-- to: " + ing.getOfferWon().getBidderName());
+                }
+            }
+            this.totalTradeItemsListView.setItems(FXCollections.observableList(localAllTradesList));
+
+            Button closeTotalTradeItems = new Button();
+            closeTotalTradeItems.setText("Close");
+            closeTotalTradeItems.setOnAction(a -> {
+                showTotalTradeItemsStage.close();
+            });
+
+            VBox vboxTotalTradeItems = new VBox();
+            vboxTotalTradeItems.setSpacing(25);
+            vboxTotalTradeItems.setAlignment(Pos.CENTER);
+            vboxTotalTradeItems.getChildren().addAll(this.totalTradeItemsListView, closeTotalTradeItems);
+
+            borderPaneTotalTradeItems.setCenter(vboxTotalTradeItems);
+
+            showTotalTradeItemsStage.setScene(new Scene(borderPaneTotalTradeItems, 500, 500));
+            showTotalTradeItemsStage.show();
+        });
+
         VBox vboxLeft = new VBox();
         //vboxBottom.setStyle("-fx-background-color: linear-gradient(#686868 0%, #232723 25%, #373837 75%, #757575 100%)");
         //vboxBottom.setStyle("-fx-background-color: linear-gradient(#C8DCA6 0%, #DBFFC0 25%, #E0FFCF 75%, #FFFFFF 100%)");
         vboxLeft.setStyle("-fx-background-image: url('insanityFlyff/images/insanity_sidebar.png');-fx-background-size: cover");
         vboxLeft.setSpacing(15);
-        vboxLeft.setPadding(new Insets(50, 10, 10, 10));
-        vboxLeft.getChildren().addAll(addItemButton, renameItemButton, deleteItemButton, deleteAllItemsButton);
+        vboxLeft.setPadding(new Insets(50, 10, 0, 10));
+        VBox.setMargin(madeBy, new Insets(20,0,0,0));
+        vboxLeft.getChildren().addAll(addItemButton, renameItemButton, deleteItemButton, deleteAllItemsButton,
+                totalEarningsHeadlineLabel, totalPerinAmountheadlineLabel, this.totalPerinAmountLabel,
+                totalPenyaAmountheadlineLabel, this.totalPenyaAmountLabel, showTotalTradeItemsButton, madeBy);
 
-        VBox.setMargin(deleteAllItemsButton, new Insets(150, 0, 0, 0));
+        VBox.setMargin(deleteAllItemsButton, new Insets(75, 0, 0, 0));
 
         borderPane.setTop(topImage);
         borderPane.setLeft(vboxLeft);
@@ -360,34 +450,96 @@ public class AppStart extends Application {
 
         if(currentItem.getAuctionState()) {
             showAuctionItemStage.setTitle(this.itemListView.getSelectionModel().getSelectedItem().getItemName() + " [Auction]");
+
+            Text showItemAuctionSoldText = new Text();
+            if(currentItem.getOfferWon()!=null) {
+                showItemAuctionSoldText.setText("Sold for: " + currentItem.getOfferWon().toString());
+            }
+            showItemAuctionSoldText.setStyle("-fx-font-weight: bold");
+
             Button addOfferToItem = new Button();
             addOfferToItem.setText("Add offer");
+            addOfferToItem.setPrefWidth(100);
             addOfferToItem.setOnAction(a -> {
-                addOfferToItemStage(currentItem);
+                if(currentItem.getOfferWon()==null) {
+                    addOfferToItemStage(currentItem);
+                }
             });
 
             Button deleteOfferFromItem = new Button();
             deleteOfferFromItem.setText("Delete offer");
+            deleteOfferFromItem.setPrefWidth(100);
             deleteOfferFromItem.setOnAction(e -> {
-                currentItem.removeOffer(this.itemOffersListView.getSelectionModel().getSelectedItem());
-                this.refreshItemOfferList(currentItem);
+                if(currentItem.getOfferWon()==null) {
+                    currentItem.removeOffer(this.itemOffersListView.getSelectionModel().getSelectedItem());
+                    this.refreshItemOfferList(currentItem);
+                }
+            });
+
+            Button soldItemAuctionButton = new Button();
+            soldItemAuctionButton.setText("Sold");
+            soldItemAuctionButton.setPrefWidth(100);
+            soldItemAuctionButton.setOnAction(e -> {
+                if (currentItem.getOfferWon()==null && this.itemOffersListView.getSelectionModel().getSelectedItem() != null) {
+                    Stage sellAuctionItemStage = new Stage();
+                    sellAuctionItemStage.initModality(Modality.APPLICATION_MODAL);
+                    sellAuctionItemStage.setTitle("Warning");
+
+                    BorderPane borderPaneSellAuctionItem = new BorderPane();
+                    //borderPaneDeleteAllItems.setPadding(new Insets(10, 0, 0, 0));
+
+                    Text sellAuctionItemText = new Text("Are you sure you want to sell this item for the selected offer? This action can't be undone!");
+                    sellAuctionItemText.setWrappingWidth(225);
+
+                    Button sellAuctionItemYesButton = new Button();
+                    sellAuctionItemYesButton.setText("Yes");
+                    sellAuctionItemYesButton.setPrefWidth(75);
+                    sellAuctionItemYesButton.setOnAction(a -> {
+                        currentItem.updateAmountAvailable(0);
+                        currentItem.updateOfferWon(this.itemOffersListView.getSelectionModel().getSelectedItem());
+                        showItemAuctionSoldText.setText("Sold for: " + currentItem.getOfferWon().toString());
+                        this.refreshItemList();
+                        sellAuctionItemStage.close();
+                    });
+
+                    Button sellAuctionItemNoButton = new Button();
+                    sellAuctionItemNoButton.setText("No");
+                    sellAuctionItemNoButton.setPrefWidth(75);
+                    sellAuctionItemNoButton.setOnAction(a -> {
+                        sellAuctionItemStage.close();
+                    });
+
+                    HBox hboxForButtons = new HBox();
+                    hboxForButtons.setSpacing(15);
+                    hboxForButtons.setAlignment(Pos.CENTER);
+                    hboxForButtons.getChildren().addAll(sellAuctionItemYesButton, sellAuctionItemNoButton);
+
+                    VBox vboxForTextAndButtons = new VBox();
+                    vboxForTextAndButtons.setSpacing(20);
+                    vboxForTextAndButtons.setPadding(new Insets(15, 15, 0, 15));
+                    vboxForTextAndButtons.getChildren().addAll(sellAuctionItemText, hboxForButtons);
+
+                    borderPaneSellAuctionItem.setCenter(vboxForTextAndButtons);
+                    sellAuctionItemStage.setScene(new Scene(borderPaneSellAuctionItem, 250, 150));
+                    sellAuctionItemStage.show();
+                }
             });
 
             this.refreshItemOfferList(currentItem);
 
-            HBox hboxItemShowCenterListView = new HBox();
-            this.itemOffersListView.setPrefWidth(this.itemImage.getImage().getWidth()+200);
-            hboxItemShowCenterListView.setPrefHeight(this.itemImage.getImage().getHeight());
-            hboxItemShowCenterListView.getChildren().add(this.itemOffersListView);
+            HBox hboxItemShowOfferListView = new HBox();
+            hboxItemShowOfferListView.setPrefHeight(this.itemImage.getImage().getHeight());
+            hboxItemShowOfferListView.getChildren().add(this.itemOffersListView);
 
             HBox hboxItemShowCenterButtons = new HBox();
-            hboxItemShowCenterButtons.setPadding(new Insets(25, 0, 0, 220));
+            hboxItemShowCenterButtons.setPadding(new Insets(0, 0, 25, 100));
             hboxItemShowCenterButtons.setSpacing(30);
-            hboxItemShowCenterButtons.getChildren().addAll(addOfferToItem, deleteOfferFromItem);
+            hboxItemShowCenterButtons.getChildren().addAll(addOfferToItem, deleteOfferFromItem, soldItemAuctionButton);
 
             VBox vboxItemShowCenter = new VBox();
             vboxItemShowCenter.setPadding(new Insets(30, 0, 0, 30));
-            vboxItemShowCenter.getChildren().addAll(hboxItemShowCenterListView, hboxItemShowCenterButtons);
+            VBox.setMargin(showItemAuctionSoldText, new Insets(15,0,40,0));
+            vboxItemShowCenter.getChildren().addAll(hboxItemShowOfferListView, showItemAuctionSoldText, hboxItemShowCenterButtons);
             borderPaneShowItem.setCenter(vboxItemShowCenter);
         } else {
             showAuctionItemStage.setTitle(this.itemListView.getSelectionModel().getSelectedItem().getItemName() + " [Shop]");
@@ -436,6 +588,7 @@ public class AppStart extends Application {
             changeAmountButton.setPrefWidth(100);
             changeAmountButton.setOnAction(e -> {
                 Stage changeAmountStage = new Stage();
+                changeAmountStage.setResizable(false);
                 changeAmountStage.initModality(Modality.APPLICATION_MODAL);
                 changeAmountStage.setTitle("Change amount");
 
@@ -472,6 +625,7 @@ public class AppStart extends Application {
             HBox.setMargin(setShopPriceButton, new Insets(0, 0, 0, 15));
             setShopPriceButton.setOnAction(e -> {
                 Stage setPriceStage = new Stage();
+                setPriceStage.setResizable(false);
                 setPriceStage.initModality(Modality.APPLICATION_MODAL);
                 setPriceStage.setTitle("Shop Price");
 
@@ -561,6 +715,7 @@ public class AppStart extends Application {
             soldItemsButton.setPrefWidth(100);
             soldItemsButton.setOnAction(e -> {
                 Stage soldItemStage = new Stage();
+                soldItemStage.setResizable(false);
                 soldItemStage.initModality(Modality.APPLICATION_MODAL);
                 soldItemStage.setTitle("Sold");
 
@@ -581,19 +736,20 @@ public class AppStart extends Application {
                         this.itemShopHistoryView.setItems(FXCollections.observableList(currentItem.getSellHistoryList()));
                         totalAmountLabel.setText(String.valueOf(currentItem.getAmountAvailable()));
                         currentItem.getSellHistoryList().forEach(System.out::println);
+                        refreshItemList();
                         soldItemStage.close();
                     }
                 });
 
                 VBox vboxSoldItemAll = new VBox();
-                vboxSoldItemAll.setPadding(new Insets(15,15,15,15));
+                vboxSoldItemAll.setPadding(new Insets(15, 15, 15, 15));
                 vboxSoldItemAll.setSpacing(15);
                 vboxSoldItemAll.setAlignment(Pos.CENTER);
                 vboxSoldItemAll.getChildren().addAll(soldItemAmountTextField, soldItemAmountLabel, soldItemAmountButton);
 
                 borderPaneItemSold.setCenter(vboxSoldItemAll);
 
-                soldItemStage.setScene(new Scene(borderPaneItemSold, soldItemAmountLabel.getText().length()*7, 150));
+                soldItemStage.setScene(new Scene(borderPaneItemSold, soldItemAmountLabel.getText().length() * 7, 150));
                 soldItemStage.show();
             });
 
@@ -611,11 +767,8 @@ public class AppStart extends Application {
             hboxSoldButtonOnly.getChildren().add(soldItemsButton);
 
 
-            if(!this.addedAlready) {
-                hboxItemShopListView.getChildren().add(this.itemShopHistoryView);
-            }
-
-            this.addedAlready = true;
+            HBox hboxItemShopListView = new HBox();
+            hboxItemShopListView.getChildren().add(this.itemShopHistoryView);
 
             VBox vboxAllStuff = new VBox();
             vboxAllStuff.setPadding(new Insets(25, 0, 0, 50));
@@ -628,12 +781,11 @@ public class AppStart extends Application {
         borderPaneShowItem.setLeft(vboxItemImageLeft);
         if(currentItem.getAuctionState()) {
             Scene sceneShowItem = new Scene(borderPaneShowItem, this.itemImage.getImage().getWidth() + 700, this.itemImage.getImage().getHeight() + 100);
+            this.itemOffersListView.setPrefSize(sceneShowItem.getWidth() - this.itemImage.getImage().getWidth() - 150, this.itemImage.getImage().getHeight()-50);
+            this.itemOffersListView.setMaxHeight(this.itemImage.getImage().getHeight()-50);
             showAuctionItemStage.setScene(sceneShowItem);
         } else {
             Scene sceneShowItem = new Scene(borderPaneShowItem, this.itemImage.getImage().getWidth() + 600, this.itemImage.getImage().getHeight() + 250);
-            /**
-             * Here is the location why i needed to make the hbox as attribute!
-             */
             this.itemShopHistoryView.setPrefSize(sceneShowItem.getWidth() - this.itemImage.getImage().getWidth() - 115, this.itemImage.getImage().getHeight()-50);
             showAuctionItemStage.setScene(sceneShowItem);
         }
@@ -653,7 +805,7 @@ public class AppStart extends Application {
         perinLabel.setStyle("-fx-font-weight: bold");
 
         Label penyaLabel = new Label();
-        penyaLabel.setPrefWidth(90);
+        penyaLabel.setPrefWidth(59);
         penyaLabel.setText("Penya: ");
         penyaLabel.setStyle("-fx-font-weight: bold");
 
@@ -668,22 +820,52 @@ public class AppStart extends Application {
         bidderNameLabel.setStyle("-fx-font-weight: bold");
 
         TextField perinTextField = new TextField();
+        perinTextField.setText("0");
         perinTextField.setPrefWidth(350);
 
         TextField penyaTextField = new TextField();
+        penyaTextField.setText("0");
         penyaTextField.setPrefWidth(350);
 
         TextField tradeItemTextField = new TextField();
+        tradeItemTextField.setPromptText("Leave it cleared if no item is offered");
         tradeItemTextField.setPrefWidth(350);
 
         TextField bidderNameTextField = new TextField();
         bidderNameTextField.setPrefWidth(350);
 
+        Tooltip tooltipPenyaTextField = new Tooltip();
+        tooltipPenyaTextField.setText("Value of 100.000.000 and above\nwill automatically be converted into Perins!");
+        /**
+         * "Hack" to change the activation time for the tooltip to display. As seen, the activationTimer is a private field and usually can't be accessed
+         * and changed. Via reflection it is possible to change its value even though its private. Java 9 will have the possibility to change this value without this
+         * workaround
+         */
+        try {
+            Field fieldBehavior = tooltipPenyaTextField.getClass().getDeclaredField("BEHAVIOR");
+            fieldBehavior.setAccessible(true);
+            Object objBehavior = fieldBehavior.get(tooltipPenyaTextField);
+
+            Field fieldTimer = objBehavior.getClass().getDeclaredField("activationTimer");
+            fieldTimer.setAccessible(true);
+            Timeline objTimer = (Timeline) fieldTimer.get(objBehavior);
+
+            objTimer.getKeyFrames().clear();
+            objTimer.getKeyFrames().add(new KeyFrame(new Duration(0)));
+        } catch (Exception a) {
+            a.printStackTrace();
+        }
+
+        Button buttonOnlyToolTip = new Button();
+        buttonOnlyToolTip.setText("?");
+        buttonOnlyToolTip.setTooltip(tooltipPenyaTextField);
+        buttonOnlyToolTip.setStyle("-fx-background-radius: 15em;-fx-min-width: 3px;-fx-min-height: 3px;-fx-max-width: 33px;-fx-max-height: 33px;");
+
         Button saveOffer = new Button();
         saveOffer.setText("Save");
         saveOffer.setOnAction(e -> {
             if (!perinTextField.getText().isEmpty() && !penyaTextField.getText().isEmpty() && !bidderNameTextField.getText().isEmpty()) {
-                currentItem.addOffer(Integer.parseInt(perinTextField.getText()), Integer.parseInt(perinTextField.getText()), tradeItemTextField.getText(), bidderNameTextField.getText());
+                currentItem.addOffer(Integer.parseInt(perinTextField.getText()), Integer.parseInt(penyaTextField.getText()), tradeItemTextField.getText(), bidderNameTextField.getText());
                 this.refreshItemOfferList(currentItem);
                 addOfferStage.close();
             }
@@ -695,7 +877,7 @@ public class AppStart extends Application {
 
         HBox hboxAddOfferSecondLine = new HBox();
         hboxAddOfferSecondLine.setSpacing(5);
-        hboxAddOfferSecondLine.getChildren().addAll(penyaLabel, penyaTextField);
+        hboxAddOfferSecondLine.getChildren().addAll(penyaLabel, buttonOnlyToolTip, penyaTextField);
 
         HBox hboxAddOfferThirdLine = new HBox();
         hboxAddOfferThirdLine.setSpacing(5);
@@ -724,6 +906,7 @@ public class AppStart extends Application {
 
     private void noticeMessageBox(String title, String message) {
         Stage noticeMessageStage = new Stage();
+        noticeMessageStage.setResizable(false);
         noticeMessageStage.initModality(Modality.APPLICATION_MODAL);
 
         BorderPane borderPaneMessageBox = new BorderPane();
@@ -752,6 +935,7 @@ public class AppStart extends Application {
 
     private void renameItem(IngameItem selectedItem) {
         Stage renameItemStage = new Stage();
+        renameItemStage.setResizable(false);
         renameItemStage.setTitle("Rename item");
         renameItemStage.initModality(Modality.APPLICATION_MODAL);
 
@@ -811,6 +995,30 @@ public class AppStart extends Application {
      */
     public void refreshItemList() {
         this.allIngameItems.sort((s1, s2) -> s1.compareTo(s2));
+        this.totalPerinAmountLabel.setText("0");
+        this.totalPenyaAmountLabel.setText("0");
+        for(IngameItem ign:this.allIngameItems) {
+            if(ign.getAuctionState()) {
+                if(ign.getOfferWon()!=null) {
+                    if ((Integer.parseInt(this.totalPenyaAmountLabel.getText()) + ign.getOfferWon().getPenya()) >= 100000000) {
+                        this.totalPerinAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPerinAmountLabel.getText()) + ign.getOfferWon().getPerin()) + 1);
+                        this.totalPenyaAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPenyaAmountLabel.getText()) + ign.getOfferWon().getPenya() - 100000000));
+                    }
+                    this.totalPerinAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPerinAmountLabel.getText()) + ign.getOfferWon().getPerin()));
+                    this.totalPenyaAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPenyaAmountLabel.getText()) + ign.getOfferWon().getPenya()));
+                }
+            } else {
+                for(SellHistory sh:ign.getSellHistoryList()) {
+                    if((Integer.parseInt(this.totalPenyaAmountLabel.getText()) + sh.getPenyaGot()) >= 100000000) {
+                        this.totalPerinAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPerinAmountLabel.getText()) + sh.getPerinGot())+1);
+                        this.totalPenyaAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPenyaAmountLabel.getText()) + sh.getPenyaGot()-100000000));
+                    } else {
+                        this.totalPerinAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPerinAmountLabel.getText()) + sh.getPerinGot()));
+                        this.totalPenyaAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPenyaAmountLabel.getText()) + sh.getPenyaGot()));
+                    }
+                }
+            }
+        }
         this.itemListView.setItems(FXCollections.observableList(new ArrayList<IngameItem>()));
         this.itemListView.setItems(FXCollections.observableList(this.allIngameItems));
     }

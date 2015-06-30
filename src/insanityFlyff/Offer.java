@@ -1,5 +1,7 @@
 package insanityFlyff;
 
+import javafx.beans.property.SimpleStringProperty;
+
 import java.io.Serializable;
 
 /**
@@ -19,8 +21,14 @@ public class Offer implements Serializable{
     private IngameItem item;
 
     public Offer(int perin, int penya, String tradeItems, String bidderName, IngameItem item) {
-        this.perin = perin;
-        this.penya = penya;
+        if(penya >= 100000000) {
+            int perinsViaWrapAround = penya/100000000;
+            this.perin = perin + perinsViaWrapAround;
+            this.penya = penya - (perinsViaWrapAround*100000000);
+        } else {
+            this.perin = perin;
+            this.penya = penya;
+        }
         this.tradeItems = tradeItems;
         this.bidderName = bidderName;
         this.item = item;
@@ -34,6 +42,10 @@ public class Offer implements Serializable{
         return this.penya;
     }
 
+    public String getTradeItems() {
+        return this.tradeItems;
+    }
+
     public String getBidderName() {
         return this.bidderName;
     }
@@ -41,9 +53,9 @@ public class Offer implements Serializable{
     @Override
     public String toString() {
         if(!this.tradeItems.isEmpty()) {
-            return this.perin + " Perins; " + this.penya + " Penya; + " + this.tradeItems + " | by: " + this.bidderName;
+            return this.perin + " Perins; " + this.penya + " Penya ----> by: " + this.bidderName + "\n+ " + this.tradeItems;
         } else {
-            return this.perin + " Perins; " + this.penya + " Penya; + No items | by: " + this.bidderName;
+            return this.perin + " Perins; " + this.penya + " Penya ----> by: " + this.bidderName + "\n+ No items";
         }
 
     }
