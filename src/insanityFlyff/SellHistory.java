@@ -37,8 +37,16 @@ public class SellHistory implements Serializable {
         return this.penyaGot;
     }
 
+    public int getPerinEach() {
+        return this.perinEach;
+    }
+
+    public int getPenyaEach() {
+        return this.penyaEach;
+    }
+
     @Override
     public String toString() {
-        return this.amountSold + " sold: " + this.perinEach + " Perins, " + this.penyaEach + " Penya each <--> Date: " + this.dateSold + "\n" + this.perinGot + " Perins, " + this.penyaGot + " Penya earned";
+        return this.amountSold + " sold:\t" + this.perinEach + " Perins, " + this.penyaEach + " Penya each\t\t[" + this.dateSold + "]\n\t\t" + this.perinGot + " Perins, " + this.penyaGot + " Penya earned";
     }
 }

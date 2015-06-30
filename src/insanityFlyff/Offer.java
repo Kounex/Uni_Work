@@ -3,6 +3,7 @@ package insanityFlyff;
 import javafx.beans.property.SimpleStringProperty;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 
 /**
  * Created by Kounex on 26.06.15.
@@ -18,6 +19,8 @@ public class Offer implements Serializable{
     private int penya;
     private String tradeItems;
     private String bidderName;
+    private LocalDate dateOffered;
+    private LocalDate dateOfferAccepted;
     private IngameItem item;
 
     public Offer(int perin, int penya, String tradeItems, String bidderName, IngameItem item) {
@@ -32,6 +35,7 @@ public class Offer implements Serializable{
         this.tradeItems = tradeItems;
         this.bidderName = bidderName;
         this.item = item;
+        this.dateOffered = LocalDate.now();
     }
 
     public int getPerin() {
@@ -50,13 +54,28 @@ public class Offer implements Serializable{
         return this.bidderName;
     }
 
+    public LocalDate getDateOfferAccepted() {
+        return this.dateOfferAccepted;
+    }
+
+    public void setDateOfferAccepted(LocalDate date) {
+        this.dateOfferAccepted = date;
+    }
+
     @Override
     public String toString() {
-        if(!this.tradeItems.isEmpty()) {
-            return this.perin + " Perins; " + this.penya + " Penya ----> by: " + this.bidderName + "\n+ " + this.tradeItems;
+        if(this.dateOfferAccepted == null) {
+            if (!this.tradeItems.isEmpty()) {
+                return this.perin + " Perins; " + this.penya + " Penya ----> by: " + this.bidderName + "\t\t[" + this.dateOffered + "]\n+ " + this.tradeItems;
+            } else {
+                return this.perin + " Perins; " + this.penya + " Penya ----> by: " + this.bidderName + "\t\t[" + this.dateOffered + "]\n+ No items";
+            }
         } else {
-            return this.perin + " Perins; " + this.penya + " Penya ----> by: " + this.bidderName + "\n+ No items";
+            if (!this.tradeItems.isEmpty()) {
+                return this.perin + " Perins; " + this.penya + " Penya ----> by: " + this.bidderName + "\t\t[" + this.dateOfferAccepted + "]\n+ " + this.tradeItems;
+            } else {
+                return this.perin + " Perins; " + this.penya + " Penya ----> by: " + this.bidderName + "\t\t[" + this.dateOfferAccepted + "]\n+ No items";
+            }
         }
-
     }
 }

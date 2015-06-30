@@ -28,6 +28,7 @@ import javax.swing.border.Border;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -256,7 +257,9 @@ public class AppStart extends Application {
             List<String> localAllTradesList = new ArrayList<>();
             for(IngameItem ing:this.allIngameItems) {
                 if(ing.getOfferWon()!=null) {
-                    localAllTradesList.add("Got: -->" + ing.getOfferWon().getTradeItems() + "\nby selling: -->" + ing.getItemName() + "<-- to: " + ing.getOfferWon().getBidderName());
+                    if(!ing.getOfferWon().getTradeItems().isEmpty()) {
+                        localAllTradesList.add("Got:\t\t" + ing.getOfferWon().getTradeItems() + "\nSold:\t" + ing.getItemName() + "\nTo:\t\t" + ing.getOfferWon().getBidderName() + "\t[" + ing.getOfferWon().getDateOfferAccepted() + "]");
+                    }
                 }
             }
             this.totalTradeItemsListView.setItems(FXCollections.observableList(localAllTradesList));
@@ -497,6 +500,7 @@ public class AppStart extends Application {
                     sellAuctionItemYesButton.setOnAction(a -> {
                         currentItem.updateAmountAvailable(0);
                         currentItem.updateOfferWon(this.itemOffersListView.getSelectionModel().getSelectedItem());
+                        currentItem.getOfferWon().setDateOfferAccepted(LocalDate.now());
                         showItemAuctionSoldText.setText("Sold for: " + currentItem.getOfferWon().toString());
                         this.refreshItemList();
                         sellAuctionItemStage.close();
@@ -1001,17 +1005,18 @@ public class AppStart extends Application {
             if(ign.getAuctionState()) {
                 if(ign.getOfferWon()!=null) {
                     if ((Integer.parseInt(this.totalPenyaAmountLabel.getText()) + ign.getOfferWon().getPenya()) >= 100000000) {
-                        this.totalPerinAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPerinAmountLabel.getText()) + ign.getOfferWon().getPerin()) + 1);
+                        this.totalPerinAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPerinAmountLabel.getText()) + ign.getOfferWon().getPerin() + 1));
                         this.totalPenyaAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPenyaAmountLabel.getText()) + ign.getOfferWon().getPenya() - 100000000));
+                    } else {
+                        this.totalPerinAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPerinAmountLabel.getText()) + ign.getOfferWon().getPerin()));
+                        this.totalPenyaAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPenyaAmountLabel.getText()) + ign.getOfferWon().getPenya()));
                     }
-                    this.totalPerinAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPerinAmountLabel.getText()) + ign.getOfferWon().getPerin()));
-                    this.totalPenyaAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPenyaAmountLabel.getText()) + ign.getOfferWon().getPenya()));
                 }
             } else {
                 for(SellHistory sh:ign.getSellHistoryList()) {
                     if((Integer.parseInt(this.totalPenyaAmountLabel.getText()) + sh.getPenyaGot()) >= 100000000) {
-                        this.totalPerinAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPerinAmountLabel.getText()) + sh.getPerinGot())+1);
-                        this.totalPenyaAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPenyaAmountLabel.getText()) + sh.getPenyaGot()-100000000));
+                        this.totalPerinAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPerinAmountLabel.getText()) + sh.getPerinGot() + 1));
+                        this.totalPenyaAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPenyaAmountLabel.getText()) + sh.getPenyaGot() - 100000000));
                     } else {
                         this.totalPerinAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPerinAmountLabel.getText()) + sh.getPerinGot()));
                         this.totalPenyaAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPenyaAmountLabel.getText()) + sh.getPenyaGot()));
