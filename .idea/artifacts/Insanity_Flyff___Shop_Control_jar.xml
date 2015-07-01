@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Insanity Flyff - Shop Control:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Insanity_Flyff___Shop_Control_jar</output-path>
+    <root id="archive" name="Insanity Flyff - Shop Control.jar">
+      <element id="module-output" name="InsanityFlyff_App" />
+    </root>
+  </artifact>
+</component>

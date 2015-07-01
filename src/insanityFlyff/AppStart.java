@@ -121,9 +121,8 @@ public class AppStart extends Application {
         totalPenyaAmountheadlineLabel.setText("Penya");
         totalPenyaAmountheadlineLabel.setStyle("-fx-font-weight: bold");
 
-        Label madeBy = new Label();
-        madeBy.setText("Coded by, Kounex");
-        madeBy.setStyle("-fx-font-weight: bolder;-fx-font-family: monospace");
+        Text madeBy = new Text();
+        madeBy.setText("\u00a9 Kounex");
 
         HBox topImage = new HBox();
         topImage.setPadding(new Insets(240, 0, 0, 0));
@@ -283,7 +282,7 @@ public class AppStart extends Application {
         vboxLeft.setStyle("-fx-background-image: url('insanityFlyff/images/insanity_sidebar.png');-fx-background-size: cover");
         vboxLeft.setSpacing(15);
         vboxLeft.setPadding(new Insets(50, 10, 0, 10));
-        VBox.setMargin(madeBy, new Insets(20,0,0,0));
+        VBox.setMargin(madeBy, new Insets(60,65,0,0));
         vboxLeft.getChildren().addAll(addItemButton, renameItemButton, deleteItemButton, deleteAllItemsButton,
                 totalEarningsHeadlineLabel, totalPerinAmountheadlineLabel, this.totalPerinAmountLabel,
                 totalPenyaAmountheadlineLabel, this.totalPenyaAmountLabel, showTotalTradeItemsButton, madeBy);
@@ -399,7 +398,8 @@ public class AppStart extends Application {
     }
 
     private void showItemStage() {
-        Stage showAuctionItemStage = new Stage();
+        Stage showItemStage = new Stage();
+        showItemStage.initModality(Modality.APPLICATION_MODAL);
 
         BorderPane borderPaneShowItem = new BorderPane();
         borderPaneShowItem.setStyle("-fx-background-image: url('insanityFlyff/images/comm__flyff_screen_by_unrealsmoker-d5awftg.jpg');-fx-background-size: cover");
@@ -427,7 +427,7 @@ public class AppStart extends Application {
                 currentItem.updateImageURL(this.defaultImagePath);
             }
             this.itemImage = new ImageView(new Image(currentItem.getImageURL()));
-            showAuctionItemStage.close();
+            showItemStage.close();
             this.showItemStage();
         });
 
@@ -436,7 +436,7 @@ public class AppStart extends Application {
         deleteItemImage.setOnAction(a -> {
             currentItem.updateImageURL(this.defaultImagePath);
             this.itemImage = new ImageView(new Image(currentItem.getImageURL()));
-            showAuctionItemStage.close();
+            showItemStage.close();
             this.showItemStage();
         });
 
@@ -452,7 +452,7 @@ public class AppStart extends Application {
         vboxItemImageLeft.getChildren().addAll(itemImage, hboxButtonsUnderImageLeft);
 
         if(currentItem.getAuctionState()) {
-            showAuctionItemStage.setTitle(this.itemListView.getSelectionModel().getSelectedItem().getItemName() + " [Auction]");
+            showItemStage.setTitle(this.itemListView.getSelectionModel().getSelectedItem().getItemName() + " [Auction]");
 
             Text showItemAuctionSoldText = new Text();
             if(currentItem.getOfferWon()!=null) {
@@ -546,7 +546,7 @@ public class AppStart extends Application {
             vboxItemShowCenter.getChildren().addAll(hboxItemShowOfferListView, showItemAuctionSoldText, hboxItemShowCenterButtons);
             borderPaneShowItem.setCenter(vboxItemShowCenter);
         } else {
-            showAuctionItemStage.setTitle(this.itemListView.getSelectionModel().getSelectedItem().getItemName() + " [Shop]");
+            showItemStage.setTitle(this.itemListView.getSelectionModel().getSelectedItem().getItemName() + " [Shop]");
 
             this.itemShopHistoryView.setItems(FXCollections.observableList(currentItem.getSellHistoryList()));
 
@@ -792,14 +792,14 @@ public class AppStart extends Application {
             Scene sceneShowItem = new Scene(borderPaneShowItem, this.itemImage.getImage().getWidth() + 700, this.itemImage.getImage().getHeight() + 100);
             this.itemOffersListView.setPrefSize(sceneShowItem.getWidth() - this.itemImage.getImage().getWidth() - 150, this.itemImage.getImage().getHeight()-50);
             this.itemOffersListView.setMaxHeight(this.itemImage.getImage().getHeight()-50);
-            showAuctionItemStage.setScene(sceneShowItem);
+            showItemStage.setScene(sceneShowItem);
         } else {
             Scene sceneShowItem = new Scene(borderPaneShowItem, this.itemImage.getImage().getWidth() + 600, this.itemImage.getImage().getHeight() + 250);
             this.itemShopHistoryView.setPrefSize(sceneShowItem.getWidth() - this.itemImage.getImage().getWidth() - 115, this.itemImage.getImage().getHeight()-50);
-            showAuctionItemStage.setScene(sceneShowItem);
+            showItemStage.setScene(sceneShowItem);
         }
-        showAuctionItemStage.setResizable(false);
-        showAuctionItemStage.show();
+        showItemStage.setResizable(false);
+        showItemStage.show();
     }
 
     private void addOfferToItemStage(IngameItem currentItem) {
