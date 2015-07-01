@@ -38,6 +38,7 @@ import java.util.List;
  * Class to realise the main app. GUI based on JavaFX
  *
  * List<IngameItem> allIngameItems: all items actively used for bidding
+ * ListView<IngameItem> itemListView: the list presenting allIngameItems (for scene)
  */
 public class AppStart extends Application {
 
@@ -404,6 +405,7 @@ public class AppStart extends Application {
         Stage showAuctionItemStage = new Stage();
 
         BorderPane borderPaneShowItem = new BorderPane();
+        borderPaneShowItem.setStyle("-fx-background-image: url('insanityFlyff/images/comm__flyff_screen_by_unrealsmoker-d5awftg.jpg');-fx-background-size: cover");
 
         IngameItem currentItem = this.itemListView.getSelectionModel().getSelectedItem();
 
@@ -552,39 +554,39 @@ public class AppStart extends Application {
 
             Label totalAmountHeadlineLabel = new Label();
             totalAmountHeadlineLabel.setText("Amount available");
-            totalAmountHeadlineLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 24");
+            totalAmountHeadlineLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 24;-fx-text-fill: white");
 
             Label totalAmountLabel = new Label();
             totalAmountLabel.setPrefWidth(150);
-            totalAmountLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16;-fx-text-fill: limegreen");
+            totalAmountLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16;-fx-text-fill: white;");
             totalAmountLabel.setText(String.valueOf(currentItem.getAmountAvailable()));
 
             Label shopPriceLabel = new Label();
             shopPriceLabel.setText("Shop Price");
             shopPriceLabel.setPadding(new Insets(25, 0, 0, 0));
-            shopPriceLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 24");
+            shopPriceLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 24;-fx-text-fill: white");
 
             Label shopPerinHeadlineLabel = new Label();
             shopPerinHeadlineLabel.setText("Perin: ");
-            shopPerinHeadlineLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16");
+            shopPerinHeadlineLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16;-fx-text-fill: white");
 
             Label shopPerinLabel = new Label();
             shopPerinLabel.setPrefWidth(50);
-            shopPerinLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16;-fx-text-fill: cornflowerblue");
+            shopPerinLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16;-fx-text-fill: white");
             shopPerinLabel.setText(String.valueOf(currentItem.getShopPerin()));
 
             Label shopPenyaHeadlineLabel = new Label();
-            shopPenyaHeadlineLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16");
+            shopPenyaHeadlineLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16;-fx-text-fill: white");
             shopPenyaHeadlineLabel.setText("Penya: ");
 
             Label shopPenyaLabel = new Label();
             shopPenyaLabel.setPrefWidth(100);
-            shopPenyaLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16;-fx-text-fill: cornflowerblue");
+            shopPenyaLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16;-fx-text-fill: white");
             shopPenyaLabel.setText(String.valueOf(currentItem.getShopPenya()));
 
             Label shopEachLabel = new Label();
-            shopEachLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16");
-            shopEachLabel.setText("each");
+            shopEachLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16;-fx-fill: black;-fx-effect: innershadow(three-pass-box, white, 2, 0.6, 20, 10)");
+                    shopEachLabel.setText("each");
 
             Button changeAmountButton = new Button();
             changeAmountButton.setText("Change");
@@ -739,7 +741,7 @@ public class AppStart extends Application {
                         currentItem.updateSellHistory(currentItem.getShopPerin(), currentItem.getShopPenya(), Integer.parseInt(soldItemAmountTextField.getText()));
                         this.itemShopHistoryView.setItems(FXCollections.observableList(currentItem.getSellHistoryList()));
                         totalAmountLabel.setText(String.valueOf(currentItem.getAmountAvailable()));
-                        currentItem.getSellHistoryList().forEach(System.out::println);
+//                        currentItem.getSellHistoryList().forEach(System.out::println);
                         refreshItemList();
                         soldItemStage.close();
                     }
