@@ -4,16 +4,13 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
-import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -21,10 +18,7 @@ import javafx.scene.text.Text;
 import javafx.stage.FileChooser;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import javafx.util.Callback;
 import javafx.util.Duration;
-
-import javax.swing.border.Border;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -253,6 +247,7 @@ public class AppStart extends Application {
             showTotalTradeItemsStage.setResizable(false);
 
             BorderPane borderPaneTotalTradeItems = new BorderPane();
+            borderPaneTotalTradeItems.setStyle("-fx-background-image: url('insanityFlyff/images/31725.jpg')");
             borderPaneTotalTradeItems.setPadding(new Insets(25,25,25,25));
 
             List<String> localAllTradesList = new ArrayList<>();
@@ -340,6 +335,7 @@ public class AppStart extends Application {
                 this.imageNameLabel.setText("Image name:\n" + imageName);
             } else {
                 this.imageNameLabel.setText("Image name:\n None selected");
+                this.imagePathSelected = this.defaultImagePath;
             }
             this.imageNameLabel.setStyle("-fx-font-weight: bold; -fx-font-style: oblique");
         });
@@ -363,6 +359,7 @@ public class AppStart extends Application {
             });
             if (!itemNameTextField.getText().isEmpty() && !itemAmountTextField.getText().isEmpty() && this.conditionMet) {
                 this.allIngameItems.add(new IngameItem(Integer.parseInt(itemAmountTextField.getText()), checkBoxAuction.isSelected(), itemNameTextField.getText(), imagePathSelected));
+                this.imagePathSelected = defaultImagePath;
                 this.refreshItemList();
                 this.imageNameLabel.setText("");
                 addItemStage.close();
@@ -425,6 +422,7 @@ public class AppStart extends Application {
             String imageName = this.addImageViaFileChooser();
             if (!imageName.equals("None selected")) {
                 currentItem.updateImageURL(this.imagePathSelected);
+                this.imagePathSelected = defaultImagePath;
             } else {
                 currentItem.updateImageURL(this.defaultImagePath);
             }
@@ -460,13 +458,13 @@ public class AppStart extends Application {
             if(currentItem.getOfferWon()!=null) {
                 showItemAuctionSoldText.setText("Sold for: " + currentItem.getOfferWon().toString());
             }
-            showItemAuctionSoldText.setStyle("-fx-font-weight: bold");
+            showItemAuctionSoldText.setStyle("-fx-font-weight: bold;-fx-font-size: 18;-fx-fill: white;-fx-stroke: black;-fx-str-width: 1");
 
             Button addOfferToItem = new Button();
             addOfferToItem.setText("Add offer");
             addOfferToItem.setPrefWidth(100);
             addOfferToItem.setOnAction(a -> {
-                if(currentItem.getOfferWon()==null) {
+                if (currentItem.getOfferWon() == null) {
                     addOfferToItemStage(currentItem);
                 }
             });
@@ -485,7 +483,7 @@ public class AppStart extends Application {
             soldItemAuctionButton.setText("Sold");
             soldItemAuctionButton.setPrefWidth(100);
             soldItemAuctionButton.setOnAction(e -> {
-                if (currentItem.getOfferWon()==null && this.itemOffersListView.getSelectionModel().getSelectedItem() != null) {
+                if (currentItem.getOfferWon() == null && this.itemOffersListView.getSelectionModel().getSelectedItem() != null) {
                     Stage sellAuctionItemStage = new Stage();
                     sellAuctionItemStage.initModality(Modality.APPLICATION_MODAL);
                     sellAuctionItemStage.setTitle("Warning");
@@ -552,40 +550,37 @@ public class AppStart extends Application {
 
             this.itemShopHistoryView.setItems(FXCollections.observableList(currentItem.getSellHistoryList()));
 
-            Label totalAmountHeadlineLabel = new Label();
+            Text totalAmountHeadlineLabel = new Text();
             totalAmountHeadlineLabel.setText("Amount available");
-            totalAmountHeadlineLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 24;-fx-text-fill: white");
+            totalAmountHeadlineLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 28;-fx-fill: white;-fx-stroke: black;-fx-str-width: 1");
 
-            Label totalAmountLabel = new Label();
-            totalAmountLabel.setPrefWidth(150);
-            totalAmountLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16;-fx-text-fill: white;");
+            Text totalAmountLabel = new Text();
+            //totalAmountLabel.setPrefWidth(150);
+            totalAmountLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 20;-fx-fill: white;-fx-stroke: black;-fx-str-width: 1");
             totalAmountLabel.setText(String.valueOf(currentItem.getAmountAvailable()));
 
-            Label shopPriceLabel = new Label();
+            Text shopPriceLabel = new Text();
             shopPriceLabel.setText("Shop Price");
-            shopPriceLabel.setPadding(new Insets(25, 0, 0, 0));
-            shopPriceLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 24;-fx-text-fill: white");
+            shopPriceLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 20;-fx-fill: white;-fx-stroke: black;-fx-str-width: 1");
 
-            Label shopPerinHeadlineLabel = new Label();
+            Text shopPerinHeadlineLabel = new Text();
             shopPerinHeadlineLabel.setText("Perin: ");
-            shopPerinHeadlineLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16;-fx-text-fill: white");
+            shopPerinHeadlineLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 20;-fx-fill: white;-fx-stroke: black;-fx-str-width: 1");
 
-            Label shopPerinLabel = new Label();
-            shopPerinLabel.setPrefWidth(50);
-            shopPerinLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16;-fx-text-fill: white");
+            Text shopPerinLabel = new Text();
+            shopPerinLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 20;-fx-fill: white;-fx-stroke: black;-fx-str-width: 1");
             shopPerinLabel.setText(String.valueOf(currentItem.getShopPerin()));
 
-            Label shopPenyaHeadlineLabel = new Label();
-            shopPenyaHeadlineLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16;-fx-text-fill: white");
+            Text shopPenyaHeadlineLabel = new Text();
+            shopPenyaHeadlineLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 20;-fx-fill: white;-fx-stroke: black;-fx-str-width: 1");
             shopPenyaHeadlineLabel.setText("Penya: ");
 
-            Label shopPenyaLabel = new Label();
-            shopPenyaLabel.setPrefWidth(100);
-            shopPenyaLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16;-fx-text-fill: white");
+            Text shopPenyaLabel = new Text();
+            shopPenyaLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 20;-fx-fill: white;-fx-stroke: black;-fx-str-width: 1");
             shopPenyaLabel.setText(String.valueOf(currentItem.getShopPenya()));
 
-            Label shopEachLabel = new Label();
-            shopEachLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 16;-fx-fill: black;-fx-effect: innershadow(three-pass-box, white, 2, 0.6, 20, 10)");
+            Text shopEachLabel = new Text();
+            shopEachLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 20;-fx-fill: white;-fx-stroke: black;-fx-str-width: 1");
                     shopEachLabel.setText("each");
 
             Button changeAmountButton = new Button();
@@ -628,7 +623,8 @@ public class AppStart extends Application {
             Button setShopPriceButton = new Button();
             setShopPriceButton.setText("Set Price");
             setShopPriceButton.setPrefWidth(100);
-            HBox.setMargin(setShopPriceButton, new Insets(0, 0, 0, 15));
+            //HBox.setMargin(setShopPriceButton, new Insets(0, 0, 0, 15));
+            setShopPriceButton.setLayoutX(600);
             setShopPriceButton.setOnAction(e -> {
                 Stage setPriceStage = new Stage();
                 setPriceStage.setResizable(false);
@@ -764,14 +760,21 @@ public class AppStart extends Application {
             hboxTotalAmountTextChangeButton.getChildren().addAll(totalAmountLabel, changeAmountButton);
 
             HBox hboxSoldAmountPerinPenyaSoldButton = new HBox();
-            //hboxSoldAmountPerinPenyaSoldButton.setPadding(new Insets(20,0,0,0));
             hboxSoldAmountPerinPenyaSoldButton.setSpacing(10);
             hboxSoldAmountPerinPenyaSoldButton.getChildren().addAll(shopPerinHeadlineLabel, shopPerinLabel, shopPenyaHeadlineLabel, shopPenyaLabel, shopEachLabel, setShopPriceButton);
 
-            HBox hboxSoldButtonOnly = new HBox();
-            hboxSoldButtonOnly.setPadding(new Insets(0, 0, 0, 352));
-            hboxSoldButtonOnly.getChildren().add(soldItemsButton);
+            VBox vboxAllButtonShowShopItem = new VBox();
+            vboxAllButtonShowShopItem.setSpacing(50);
+            vboxAllButtonShowShopItem.getChildren().addAll(changeAmountButton, setShopPriceButton, soldItemsButton);
 
+            VBox vboxAllTextShowShopItem = new VBox();
+            vboxAllTextShowShopItem.setMinWidth(360);
+            vboxAllTextShowShopItem.setSpacing(50);
+            vboxAllTextShowShopItem.getChildren().addAll(hboxTotalAmountTextChangeButton, hboxSoldAmountPerinPenyaSoldButton);
+
+            HBox hboxUpperShopItemStuff = new HBox();
+            hboxUpperShopItemStuff.setSpacing(30);
+            hboxUpperShopItemStuff.getChildren().addAll(vboxAllTextShowShopItem, vboxAllButtonShowShopItem);
 
             HBox hboxItemShopListView = new HBox();
             hboxItemShopListView.getChildren().add(this.itemShopHistoryView);
@@ -779,7 +782,7 @@ public class AppStart extends Application {
             VBox vboxAllStuff = new VBox();
             vboxAllStuff.setPadding(new Insets(25, 0, 0, 50));
             vboxAllStuff.setSpacing(15);
-            vboxAllStuff.getChildren().addAll(totalAmountHeadlineLabel, hboxTotalAmountTextChangeButton, shopPriceLabel, hboxSoldAmountPerinPenyaSoldButton, hboxSoldButtonOnly, hboxItemShopListView);
+            vboxAllStuff.getChildren().addAll(totalAmountHeadlineLabel, hboxUpperShopItemStuff, hboxItemShopListView);
 
             borderPaneShowItem.setCenter(vboxAllStuff);
         }
