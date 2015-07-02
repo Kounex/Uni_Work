@@ -46,6 +46,7 @@ public class AppStart extends Application {
     String defaultImagePath = "insanityFlyff/images/404-not-found.jpg";
     String imagePathSelected = defaultImagePath;
     boolean conditionMet;
+    boolean decisionBoxAnswer;
     Label totalPerinAmountLabel = new Label("0");
     Label totalPenyaAmountLabel = new Label("0");
     ListView totalTradeItemsListView = new ListView();
@@ -149,91 +150,20 @@ public class AppStart extends Application {
         deleteItemButton.setText("Delete Item");
         deleteItemButton.setPrefWidth(150);
         deleteItemButton.setOnAction(e -> {
-            Stage deleteItemStage = new Stage();
-            deleteItemStage.setResizable(false);
-            deleteItemStage.initModality(Modality.APPLICATION_MODAL);
-            deleteItemStage.setTitle("Warning");
-
-            BorderPane borderPaneDeleteItem = new BorderPane();
-            //borderPaneDeleteAllItems.setPadding(new Insets(10, 0, 0, 0));
-
-            Text deleteItemText = new Text("Are you sure you want to delete the selected item? This action can't be undone!");
-            deleteItemText.setWrappingWidth(225);
-
-            Button deleteItemYesButton = new Button();
-            deleteItemYesButton.setText("Yes");
-            deleteItemYesButton.setPrefWidth(75);
-            deleteItemYesButton.setOnAction(a -> {
+            if(this.decisionMessageBox("Warning", "Are you sure you want to delete the selected item? This action can't be undone!")) {
                 this.allIngameItems.remove(this.itemListView.getSelectionModel().getSelectedItem());
                 this.refreshItemList();
-                deleteItemStage.close();
-            });
-
-            Button deleteItemNoButton = new Button();
-            deleteItemNoButton.setText("No");
-            deleteItemNoButton.setPrefWidth(75);
-            deleteItemNoButton.setOnAction(a -> {
-                deleteItemStage.close();
-            });
-
-            HBox hboxForButtons = new HBox();
-            hboxForButtons.setSpacing(15);
-            hboxForButtons.setAlignment(Pos.CENTER);
-            hboxForButtons.getChildren().addAll(deleteItemYesButton, deleteItemNoButton);
-
-            VBox vboxForTextAndButtons = new VBox();
-            vboxForTextAndButtons.setSpacing(20);
-            vboxForTextAndButtons.setPadding(new Insets(15, 15, 0, 15));
-            vboxForTextAndButtons.getChildren().addAll(deleteItemText, hboxForButtons);
-
-            borderPaneDeleteItem.setCenter(vboxForTextAndButtons);
-            deleteItemStage.setScene(new Scene(borderPaneDeleteItem, 250, 125));
-            deleteItemStage.show();
+            }
         });
 
         Button deleteAllItemsButton = new Button();
-        deleteAllItemsButton.setText("Delete all");
+        deleteAllItemsButton.setText("Delete all items");
         deleteAllItemsButton.setPrefWidth(150);
         deleteAllItemsButton.setOnAction(e -> {
-            Stage deleteAllItemsStage = new Stage();
-            deleteAllItemsStage.initModality(Modality.APPLICATION_MODAL);
-            deleteAllItemsStage.setTitle("Warning");
-
-            BorderPane borderPaneDeleteAllItems = new BorderPane();
-            //borderPaneDeleteAllItems.setPadding(new Insets(10, 0, 0, 0));
-
-            Text deleteAllItemsText = new Text("Are you sure you want to delete all items? This action can't be undone!");
-            deleteAllItemsText.setWrappingWidth(225);
-
-            Button deleteAllItemsYesButton = new Button();
-            deleteAllItemsYesButton.setText("Yes");
-            deleteAllItemsYesButton.setPrefWidth(75);
-            deleteAllItemsYesButton.setOnAction(a -> {
+            if(this.decisionMessageBox("Warning", "Are you sure you want to delete all items? This action can't be undone")) {
                 this.allIngameItems.removeAll(allIngameItems);
                 this.refreshItemList();
-                deleteAllItemsStage.close();
-            });
-
-            Button deleteAllItemsNoButton = new Button();
-            deleteAllItemsNoButton.setText("No");
-            deleteAllItemsNoButton.setPrefWidth(75);
-            deleteAllItemsNoButton.setOnAction(a -> {
-                deleteAllItemsStage.close();
-            });
-
-            HBox hboxForButtons = new HBox();
-            hboxForButtons.setSpacing(15);
-            hboxForButtons.setAlignment(Pos.CENTER);
-            hboxForButtons.getChildren().addAll(deleteAllItemsYesButton, deleteAllItemsNoButton);
-
-            VBox vboxForTextAndButtons = new VBox();
-            vboxForTextAndButtons.setSpacing(20);
-            vboxForTextAndButtons.setPadding(new Insets(15, 15, 0, 15));
-            vboxForTextAndButtons.getChildren().addAll(deleteAllItemsText, hboxForButtons);
-
-            borderPaneDeleteAllItems.setCenter(vboxForTextAndButtons);
-            deleteAllItemsStage.setScene(new Scene(borderPaneDeleteAllItems, 250, 100));
-            deleteAllItemsStage.show();
+            }
         });
 
         Button showTotalTradeItemsButton = new Button();
@@ -940,6 +870,51 @@ public class AppStart extends Application {
 
         noticeMessageStage.setScene(new Scene(borderPaneMessageBox, 250, 75+(message.length()/35)*25));
         noticeMessageStage.show();
+    }
+
+    private boolean decisionMessageBox(String title, String message) {
+        Stage deleteItemStage = new Stage();
+        deleteItemStage.setResizable(false);
+        deleteItemStage.initModality(Modality.APPLICATION_MODAL);
+        deleteItemStage.setTitle(title);
+
+        this.decisionBoxAnswer = false;
+
+        BorderPane borderPaneDeleteItem = new BorderPane();
+        //borderPaneDeleteAllItems.setPadding(new Insets(10, 0, 0, 0));
+
+        Text deleteItemText = new Text(message);
+        deleteItemText.setWrappingWidth(225);
+
+        Button deleteItemYesButton = new Button();
+        deleteItemYesButton.setText("Yes");
+        deleteItemYesButton.setPrefWidth(75);
+        deleteItemYesButton.setOnAction(a -> {
+            this.decisionBoxAnswer = true;
+            deleteItemStage.close();
+        });
+
+        Button deleteItemNoButton = new Button();
+        deleteItemNoButton.setText("No");
+        deleteItemNoButton.setPrefWidth(75);
+        deleteItemNoButton.setOnAction(a -> {
+            deleteItemStage.close();
+        });
+
+        HBox hboxForButtons = new HBox();
+        hboxForButtons.setSpacing(15);
+        hboxForButtons.setAlignment(Pos.CENTER);
+        hboxForButtons.getChildren().addAll(deleteItemYesButton, deleteItemNoButton);
+
+        VBox vboxForTextAndButtons = new VBox();
+        vboxForTextAndButtons.setSpacing(20);
+        vboxForTextAndButtons.setPadding(new Insets(15, 15, 0, 15));
+        vboxForTextAndButtons.getChildren().addAll(deleteItemText, hboxForButtons);
+
+        borderPaneDeleteItem.setCenter(vboxForTextAndButtons);
+        deleteItemStage.setScene(new Scene(borderPaneDeleteItem, 250, 125));
+        deleteItemStage.showAndWait();
+        return this.decisionBoxAnswer;
     }
 
     private void renameItem(IngameItem selectedItem) {
