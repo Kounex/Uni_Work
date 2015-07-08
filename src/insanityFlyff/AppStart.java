@@ -43,7 +43,7 @@ public class AppStart extends Application {
     ListView<SellHistory> itemShopHistoryView = new ListView<>();
     Label imageNameLabel = new Label();
     ImageView itemImage;
-    String defaultImagePath = "insanityFlyff/images/404-not-found.jpg";
+    String defaultImagePath = "insanityFlyff/images/sample_item_info.png";
     String imagePathSelected = defaultImagePath;
     boolean conditionMet;
     boolean decisionBoxAnswer;
@@ -338,7 +338,7 @@ public class AppStart extends Application {
 
 
         /**
-         * If-clause to check if the URL still leads to a legit picture, otherwise show the 404 picture
+         * If-clause to check if the URL still leads to a legit picture, otherwise show the sample item picture
          */
         this.itemImage = new ImageView(new Image(currentItem.getImageURL()));
 
