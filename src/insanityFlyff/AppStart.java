@@ -235,6 +235,7 @@ public class AppStart extends Application {
      */
     private void addItemStage() {
         Stage addItemStage = new Stage();
+        addItemStage.initModality(Modality.APPLICATION_MODAL);
         addItemStage.setTitle("Add new item");
 
         BorderPane borderPaneAddItem = new BorderPane();
@@ -734,6 +735,7 @@ public class AppStart extends Application {
 
     private void addOfferToItemStage(IngameItem currentItem) {
         Stage addOfferStage = new Stage();
+        addOfferStage.initModality(Modality.APPLICATION_MODAL);
         addOfferStage.setTitle("Add offer");
 
         BorderPane borderPaneAddOffer = new BorderPane();
