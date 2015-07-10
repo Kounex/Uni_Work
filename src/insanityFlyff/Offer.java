@@ -72,9 +72,9 @@ public class Offer implements Serializable{
             }
         } else {
             if (!this.tradeItems.isEmpty()) {
-                return this.perin + " Perins; " + this.penya + " Penya ----> by: " + this.bidderName + "\t\t[" + this.dateOfferAccepted + "]\n+ " + this.tradeItems;
+                return this.perin + " Perins; " + this.penya + " Penya ----> by: " + this.bidderName + "\t[" + this.dateOfferAccepted + "]\n+ " + this.tradeItems;
             } else {
-                return this.perin + " Perins; " + this.penya + " Penya ----> by: " + this.bidderName + "\t\t[" + this.dateOfferAccepted + "]\n+ No items";
+                return this.perin + " Perins; " + this.penya + " Penya ----> by: " + this.bidderName + "\t[" + this.dateOfferAccepted + "]\n+ No items";
             }
         }
     }
