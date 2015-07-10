@@ -287,7 +287,7 @@ public class AppStart extends Application {
                     this.conditionMet = false;
                 }
             });
-            if (!itemNameTextField.getText().isEmpty() && !itemAmountTextField.getText().isEmpty() && this.conditionMet) {
+            if (!itemNameTextField.getText().isEmpty() && Integer.parseInt(itemAmountTextField.getText()) >= 0 && this.conditionMet) {
                 this.allIngameItems.add(new IngameItem(Integer.parseInt(itemAmountTextField.getText()), checkBoxAuction.isSelected(), itemNameTextField.getText(), imagePathSelected));
                 this.imagePathSelected = defaultImagePath;
                 this.refreshItemList();
@@ -532,9 +532,10 @@ public class AppStart extends Application {
                 Button changeAmountFinalButton = new Button();
                 changeAmountFinalButton.setText("Change");
                 changeAmountFinalButton.setOnAction(a -> {
-                    if (changeAmountTextField.getText() != null) {
+                    if (changeAmountTextField.getText() != null && Integer.parseInt(changeAmountTextField.getText()) >= 0) {
                         currentItem.updateAmountAvailable(Integer.parseInt(changeAmountTextField.getText()));
                         totalAmountLabel.setText(changeAmountTextField.getText());
+                        this.refreshItemList();
                         changeAmountStage.close();
                     }
                 });
