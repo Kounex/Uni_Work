@@ -50,6 +50,11 @@ public class AppStart extends Application {
     Label totalPerinAmountLabel = new Label("0");
     Label totalPenyaAmountLabel = new Label("0");
     ListView totalTradeItemsListView = new ListView();
+    /**
+     * This HBox is a field because i have to resize the box to match the scene, but the scene size is defined way later
+     * and in another if-statement, therefore i wouldn't be able to change it without being a field
+     */
+    HBox hboxForSoldTextOnly = new HBox();
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -388,8 +393,11 @@ public class AppStart extends Application {
             Text showItemAuctionSoldText = new Text();
             if(currentItem.getOfferWon()!=null) {
                 showItemAuctionSoldText.setText("Sold for: " + currentItem.getOfferWon().toString());
+            } else {
+                showItemAuctionSoldText.setText("Not sold yet!");
             }
-            showItemAuctionSoldText.setStyle("-fx-font-weight: bold;-fx-font-size: 18;-fx-fill: white;-fx-stroke: black;-fx-str-width: 1");
+//            showItemAuctionSoldText.setStyle("-fx-font-weight: bold;-fx-font-size: 14;-fx-fill: white;-fx-stroke: black;-fx-str-width: 1");
+            showItemAuctionSoldText.setStyle("-fx-font-weight: bold;-fx-font-size: 14");
 
             Button addOfferToItem = new Button();
             addOfferToItem.setText("Add offer");
@@ -404,7 +412,7 @@ public class AppStart extends Application {
             deleteOfferFromItem.setText("Delete offer");
             deleteOfferFromItem.setPrefWidth(100);
             deleteOfferFromItem.setOnAction(e -> {
-                if(currentItem.getOfferWon()==null) {
+                if (currentItem.getOfferWon() == null) {
                     currentItem.removeOffer(this.itemOffersListView.getSelectionModel().getSelectedItem());
                     this.refreshItemOfferList(currentItem);
                 }
@@ -471,10 +479,15 @@ public class AppStart extends Application {
             hboxItemShowCenterButtons.setSpacing(30);
             hboxItemShowCenterButtons.getChildren().addAll(addOfferToItem, deleteOfferFromItem, soldItemAuctionButton);
 
+            this.hboxForSoldTextOnly.setStyle("-fx-background-color: whitesmoke");
+            this.hboxForSoldTextOnly.getChildren().add(showItemAuctionSoldText);
+
             VBox vboxItemShowCenter = new VBox();
             vboxItemShowCenter.setPadding(new Insets(30, 0, 0, 30));
-            VBox.setMargin(showItemAuctionSoldText, new Insets(15,0,40,0));
-            vboxItemShowCenter.getChildren().addAll(hboxItemShowOfferListView, showItemAuctionSoldText, hboxItemShowCenterButtons);
+
+            VBox.setMargin(hboxForSoldTextOnly, new Insets(15,0,40,0));
+
+            vboxItemShowCenter.getChildren().addAll(hboxItemShowOfferListView, hboxForSoldTextOnly, hboxItemShowCenterButtons);
             borderPaneShowItem.setCenter(vboxItemShowCenter);
         } else {
             showItemStage.setTitle(this.itemListView.getSelectionModel().getSelectedItem().getItemName() + " [Shop]");
@@ -723,7 +736,8 @@ public class AppStart extends Application {
         if(currentItem.getAuctionState()) {
             Scene sceneShowItem = new Scene(borderPaneShowItem, this.itemImage.getImage().getWidth() + 700, this.itemImage.getImage().getHeight() + 100);
             this.itemOffersListView.setPrefSize(sceneShowItem.getWidth() - this.itemImage.getImage().getWidth() - 150, this.itemImage.getImage().getHeight()-50);
-            this.itemOffersListView.setMaxHeight(this.itemImage.getImage().getHeight()-50);
+            this.itemOffersListView.setMaxHeight(this.itemImage.getImage().getHeight() - 50);
+            this.hboxForSoldTextOnly.setMaxWidth(sceneShowItem.getWidth() - this.itemImage.getImage().getWidth() - 150);
             showItemStage.setScene(sceneShowItem);
         } else {
             Scene sceneShowItem = new Scene(borderPaneShowItem, this.itemImage.getImage().getWidth() + 600, this.itemImage.getImage().getHeight() + 250);
