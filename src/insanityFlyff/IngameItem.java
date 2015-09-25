@@ -9,21 +9,32 @@ import java.util.List;
  */
 public class IngameItem implements Serializable, Comparable {
     private String itemName;
-    private String imageURL;
+    private List<String> imageURLS = new ArrayList<>();
     private List<Offer> offerList = new ArrayList<>();
     private Offer offerWon;
     private List<SellHistory> sellHistoryList = new ArrayList<>();
-    int amountAvailable;
-    int amountSold;
-    int shopPerin;
-    int shopPenya;
+    private int amountAvailable;
+    private int amountSold;
+    private int shopPerin;
+    private int shopPenya;
     private boolean auction;
 
-    public IngameItem(int amountAvailable, boolean auction, String itemName, String imageURL) {
+    /**
+     * Old version, this constructor only added one image to the list (has been a string only before)
+     * after multiple image function had been implemented this has become unnecessary
+     */
+//    public IngameItem(int amountAvailable, boolean auction, String itemName, String imageURL) {
+//        this.amountAvailable = amountAvailable;
+//        this.auction = auction;
+//        this.itemName = itemName;
+//        this.imageURLS.add(imageURL);
+//    }
+
+    public IngameItem(int amountAvailable, boolean auction, String itemName, List<String> imageURLS) {
         this.amountAvailable = amountAvailable;
         this.auction = auction;
         this.itemName = itemName;
-        this.imageURL = imageURL;
+        this.imageURLS = imageURLS;
     }
 
     public void addOffer(int perin, int penya, String tradeItem, String bidderName) {
@@ -38,8 +49,27 @@ public class IngameItem implements Serializable, Comparable {
         this.itemName = itemName;
     }
 
-    public void updateImageURL(String imageURL) {
-        this.imageURL = imageURL;
+    public void updateImageURL(String imageURL_OLD, String imageURL_NEW) {
+//        this.imageURLS.forEach(s -> {
+//           if(imageURL_OLD.equals(s)) {
+//               s = imageURL_NEW;
+//           }
+//        });
+        int oldPlace = this.imageURLS.indexOf(imageURL_OLD);
+        this.imageURLS.remove(imageURL_OLD);
+        this.imageURLS.add(oldPlace, imageURL_NEW);
+    }
+
+    public void deleteSingleImageURL(String imageURL) {
+        this.imageURLS.remove(imageURL);
+    }
+
+    public void addImageURL(String imageURL) {
+        this.imageURLS.add(imageURL);
+    }
+
+    public void deleteImageURLS() {
+        this.imageURLS = new ArrayList<>();
     }
 
     public void updateAmountAvailable(int amountAvailable) {
@@ -92,8 +122,8 @@ public class IngameItem implements Serializable, Comparable {
        return this.auction;
     }
 
-    public String getImageURL() {
-        return this.imageURL;
+    public List<String> getImageURLS() {
+        return this.imageURLS;
     }
 
     public List<Offer> getOfferList() {

@@ -7,19 +7,19 @@ import java.time.LocalDate;
  * Created by Kounex on 29.06.2015.
  */
 public class SellHistory implements Serializable {
-    private int perinGot;
-    private int penyaGot;
-    private int perinEach;
-    private int penyaEach;
+    private long perinGot;
+    private long penyaGot;
+    private long perinEach;
+    private long penyaEach;
     private int amountSold;
     LocalDate dateSold;
 
-    public SellHistory(int perinEach, int penyaEach, int amountSold) {
+    public SellHistory(int perinEach, long penyaEach, int amountSold) {
         this.perinEach = perinEach;
         this.penyaEach = penyaEach;
         this.amountSold = amountSold;
         if(penyaEach*amountSold>=100000000) {
-            int perinsViaWrapAround = (penyaEach*amountSold)/100000000;
+            long perinsViaWrapAround = (penyaEach*amountSold)/100000000;
             this.perinGot = perinEach*amountSold+perinsViaWrapAround;
             this.penyaGot = penyaEach*amountSold-perinsViaWrapAround*100000000;
         } else {
@@ -29,24 +29,24 @@ public class SellHistory implements Serializable {
         this.dateSold = LocalDate.now();
     }
 
-    public int getPerinGot() {
+    public long getPerinGot() {
         return this.perinGot;
     }
 
-    public int getPenyaGot() {
+    public long getPenyaGot() {
         return this.penyaGot;
     }
 
-    public int getPerinEach() {
+    public long getPerinEach() {
         return this.perinEach;
     }
 
-    public int getPenyaEach() {
+    public long getPenyaEach() {
         return this.penyaEach;
     }
 
     @Override
     public String toString() {
-        return this.amountSold + " sold:\t" + this.perinEach + " Perins, " + this.penyaEach + " Penya each\t\t[" + this.dateSold + "]\n\t\t" + this.perinGot + " Perins, " + this.penyaGot + " Penya earned";
+        return this.amountSold + " sold:\t" + String.format("%,d",this.perinEach) + " Perins, " + String.format("%,d",this.penyaEach) + " Penya each\t\t[" + this.dateSold + "]\n\t\t" + this.perinGot + " Perins, " + this.penyaGot + " Penya earned";
     }
 }

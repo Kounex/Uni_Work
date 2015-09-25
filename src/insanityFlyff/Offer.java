@@ -66,15 +66,15 @@ public class Offer implements Serializable{
     public String toString() {
         if(this.dateOfferAccepted == null) {
             if (!this.tradeItems.isEmpty()) {
-                return this.perin + " Perins; " + this.penya + " Penya ----> by: " + this.bidderName + "\t\t[" + this.dateOffered + "]\n+ " + this.tradeItems;
+                return String.format("%,d",this.perin) + " Perins; " + String.format("%,d",this.penya) + " Penya ----> by: " + this.bidderName + "\t\t[" + this.dateOffered + "]\n+ " + this.tradeItems;
             } else {
-                return this.perin + " Perins; " + this.penya + " Penya ----> by: " + this.bidderName + "\t\t[" + this.dateOffered + "]\n+ No items";
+                return String.format("%,d",this.perin) + " Perins; " + String.format("%,d",this.penya) + " Penya ----> by: " + this.bidderName + "\t\t[" + this.dateOffered + "]\n+ No items";
             }
         } else {
             if (!this.tradeItems.isEmpty()) {
-                return this.perin + " Perins; " + this.penya + " Penya ----> by: " + this.bidderName + "\t[" + this.dateOfferAccepted + "]\n+ " + this.tradeItems;
+                return String.format("%,d",this.perin) + " Perins; " + String.format("%,d",this.penya) + " Penya ----> by: " + this.bidderName + "\t[" + this.dateOfferAccepted + "]\n+ " + this.tradeItems;
             } else {
-                return this.perin + " Perins; " + this.penya + " Penya ----> by: " + this.bidderName + "\t[" + this.dateOfferAccepted + "]\n+ No items";
+                return String.format("%,d",this.perin) + " Perins; " + String.format("%,d",this.penya) + " Penya ----> by: " + this.bidderName + "\t[" + this.dateOfferAccepted + "]\n+ No items";
             }
         }
     }

@@ -41,20 +41,47 @@ public class AppStart extends Application {
 //    TableView<Offer> itemOffersListView = new TableView<>();
     ListView<Offer> itemOffersListView = new ListView<>();
     ListView<SellHistory> itemShopHistoryView = new ListView<>();
-    Label imageNameLabel = new Label();
+    Label imageCounterLabel = new Label();
+    List<ImageView> itemImages = new ArrayList<>();
     ImageView itemImage;
     String defaultImagePath = "insanityFlyff/images/sample_item_info.png";
     String imagePathSelected = defaultImagePath;
     boolean conditionMet;
     boolean decisionBoxAnswer;
+    /**
+     * The labels which will display the total earnings -> the longs are the values calculated
+     */
     Label totalPerinAmountLabel = new Label("0");
     Label totalPenyaAmountLabel = new Label("0");
+    long totalPerinAmountValue;
+    long totalPenyaAmountValue;
+
     ListView totalTradeItemsListView = new ListView();
+    int imageIndex = 0;
+    String currentImageDisplayedURL;
+    /**
+     * Those will be used to calculate the total earning from each shopItem itself
+     */
+    long penyaFromSellHistorySum;
+    long perinFromSellHistorySum;
+    Text textItemSoldSum = new Text();
     /**
      * This HBox is a field because i have to resize the box to match the scene, but the scene size is defined way later
      * and in another if-statement, therefore i wouldn't be able to change it without being a field
      */
     HBox hboxForSoldTextOnly = new HBox();
+
+    /**
+     * To have a counter for the amount of images selected in the addItemStage to be used in the lambda expressions
+     * the variable is defined as a field
+     */
+    int imageCounter;
+
+    /**
+     * ListView to display all images as ImageViews added via the addItemStage
+     */
+
+    ListView<ImageView> addedImagesListView = new ListView<>();
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -119,13 +146,13 @@ public class AppStart extends Application {
         totalEarningsHeadlineLabel.setText("Total earnings");
         totalEarningsHeadlineLabel.setStyle("-fx-font-weight: bold;-fx-underline: true");
 
-        Label totalPerinAmountheadlineLabel = new Label();
-        totalPerinAmountheadlineLabel.setText("Perin");
-        totalPerinAmountheadlineLabel.setStyle("-fx-font-weight: bold");
+        Label totalPerinAmountHeadlineLabel = new Label();
+        totalPerinAmountHeadlineLabel.setText("Perin");
+        totalPerinAmountHeadlineLabel.setStyle("-fx-font-weight: bold");
 
-        Label totalPenyaAmountheadlineLabel = new Label();
-        totalPenyaAmountheadlineLabel.setText("Penya");
-        totalPenyaAmountheadlineLabel.setStyle("-fx-font-weight: bold");
+        Label totalPenyaAmountHeadlineLabel = new Label();
+        totalPenyaAmountHeadlineLabel.setText("Penya");
+        totalPenyaAmountHeadlineLabel.setStyle("-fx-font-weight: bold");
 
         Text madeBy = new Text();
         madeBy.setText("\u00a9 Kounex");
@@ -219,8 +246,8 @@ public class AppStart extends Application {
         vboxLeft.setPadding(new Insets(50, 10, 0, 10));
         VBox.setMargin(madeBy, new Insets(60,65,0,0));
         vboxLeft.getChildren().addAll(addItemButton, renameItemButton, deleteItemButton, deleteAllItemsButton,
-                totalEarningsHeadlineLabel, totalPerinAmountheadlineLabel, this.totalPerinAmountLabel,
-                totalPenyaAmountheadlineLabel, this.totalPenyaAmountLabel, showTotalTradeItemsButton, madeBy);
+                totalEarningsHeadlineLabel, totalPerinAmountHeadlineLabel, this.totalPerinAmountLabel,
+                totalPenyaAmountHeadlineLabel, this.totalPenyaAmountLabel, showTotalTradeItemsButton, madeBy);
 
         VBox.setMargin(deleteAllItemsButton, new Insets(75, 0, 0, 0));
 
@@ -243,6 +270,17 @@ public class AppStart extends Application {
         addItemStage.initModality(Modality.APPLICATION_MODAL);
         addItemStage.setTitle("Add new item");
 
+        /**
+         * This is the list which contains all the image paths selected
+         */
+        List<String> selectedImages = new ArrayList<>();
+
+        /**
+         * To display the text as soon as the stage is shown
+         */
+        this.imageCounterLabel.setText(imageCounter+" image(s) selected");
+        this.imageCounterLabel.setStyle("-fx-font-weight: bold; -fx-font-style: oblique");
+
         BorderPane borderPaneAddItem = new BorderPane();
 
         Label itemNameLabel = new Label();
@@ -262,28 +300,80 @@ public class AppStart extends Application {
         CheckBox checkBoxAuction = new CheckBox();
         checkBoxAuction.setText("Auction?");
 
-        Button selectItemImage = new Button();
-        selectItemImage.setText("Select Image");
-        selectItemImage.setOnAction(e -> {
-            String imageName = this.addImageViaFileChooser();
-            if (!imageName.equals("None selected")) {
-                this.imageNameLabel.setText("Image name:\n" + imageName);
-            } else {
-                this.imageNameLabel.setText("Image name:\n None selected");
-                this.imagePathSelected = this.defaultImagePath;
-            }
-            this.imageNameLabel.setStyle("-fx-font-weight: bold; -fx-font-style: oblique");
+        Button manageImages = new Button();
+        manageImages.setText("Manage Images");
+        manageImages.setOnAction(e -> {
+            Stage manageImagesStage = new Stage();
+            manageImagesStage.initModality(Modality.APPLICATION_MODAL);
+            manageImagesStage.setTitle("Manage Images");
+
+            BorderPane borderPaneManageImages = new BorderPane();
+
+            /**
+             * TODO:
+             * Add setOnAction events to the buttons (addImage is already working!)
+             */
+            Button removeAllImages = new Button();
+            removeAllImages.setText("Remove All");
+            removeAllImages.setPrefWidth(150);
+
+            Button removeSingleImage = new Button();
+            removeSingleImage.setText("Remove Image");
+            removeSingleImage.setPrefWidth(150);
+
+            Button changeSingleImage = new Button();
+            changeSingleImage.setText("Change Image");
+            changeSingleImage.setPrefWidth(150);
+
+            Button addImage = new Button();
+            addImage.setText("Add Image");
+            addImage.setPrefWidth(150);
+            addImage.setOnAction(a -> {
+                String imageName = this.addImageViaFileChooser();
+                if (!imageName.equals("None selected")) {
+                    this.imageCounter++;
+                    selectedImages.add(this.imagePathSelected);
+                    this.refreshManageImageListView(selectedImages);
+                }
+                this.imageCounterLabel.setText(this.imageCounter + " image(s) selected");
+            });
+
+            Button doneManageImages = new Button();
+            doneManageImages.setText("Done");
+            doneManageImages.setPrefWidth(150);
+            doneManageImages.setOnAction(a -> {
+                manageImagesStage.close();
+            });
+
+            refreshManageImageListView(selectedImages);
+
+            VBox vboxAllButtonsManageImages = new VBox();
+            vboxAllButtonsManageImages.setSpacing(25);
+            vboxAllButtonsManageImages.setPadding(new Insets(0,30,0,30));
+            vboxAllButtonsManageImages.setAlignment(Pos.CENTER);
+            vboxAllButtonsManageImages.getChildren().addAll(removeAllImages, removeSingleImage, changeSingleImage, addImage, doneManageImages);
+
+            borderPaneManageImages.setCenter(this.addedImagesListView);
+            borderPaneManageImages.setRight(vboxAllButtonsManageImages);
+
+            Scene manageImagesScene = new Scene(borderPaneManageImages, 600, 600);
+            manageImagesStage.setScene(manageImagesScene);
+            manageImagesStage.setResizable(false);
+            manageImagesStage.show();
         });
 
         HBox hboxForImageButton = new HBox();
         hboxForImageButton.setPadding(new Insets(47, 0, 0, 0));
-        hboxForImageButton.getChildren().add(selectItemImage);
+        hboxForImageButton.setSpacing(10);
+        hboxForImageButton.getChildren().add(manageImages);
 
         VBox vboxForImageButton = new VBox();
-        vboxForImageButton.getChildren().addAll(hboxForImageButton, this.imageNameLabel);
+        vboxForImageButton.setSpacing(15);
+        vboxForImageButton.getChildren().addAll(hboxForImageButton, this.imageCounterLabel);
 
         Button createItemAdd = new Button();
         createItemAdd.setText("Create");
+        createItemAdd.setPrefWidth(100);
         createItemAdd.setOnAction(a -> {
             this.conditionMet = true;
             this.itemListView.getItems().forEach(c -> {
@@ -293,12 +383,21 @@ public class AppStart extends Application {
                 }
             });
             if (!itemNameTextField.getText().isEmpty() && Integer.parseInt(itemAmountTextField.getText()) >= 0 && this.conditionMet) {
-                this.allIngameItems.add(new IngameItem(Integer.parseInt(itemAmountTextField.getText()), checkBoxAuction.isSelected(), itemNameTextField.getText(), imagePathSelected));
-                this.imagePathSelected = defaultImagePath;
+                if(selectedImages.isEmpty()) {
+                    selectedImages.add(this.defaultImagePath);
+                }
+                this.allIngameItems.add(new IngameItem(Integer.parseInt(itemAmountTextField.getText()), checkBoxAuction.isSelected(), itemNameTextField.getText(), selectedImages));
                 this.refreshItemList();
-                this.imageNameLabel.setText("");
+                this.imageCounter = 0;
                 addItemStage.close();
             }
+        });
+
+        Button cancelCreate = new Button();
+        cancelCreate.setText("Cancel");
+        cancelCreate.setPrefWidth(100);
+        cancelCreate.setOnAction(e -> {
+            addItemStage.close();
         });
 
         HBox hboxforSendAndCheckBox = new HBox();
@@ -315,18 +414,15 @@ public class AppStart extends Application {
         hboxItemAddCenter.getChildren().addAll(vboxInsideHboxItemAddCenter, vboxForImageButton);
 
         HBox hboxItemAddBottom = new HBox();
-        hboxItemAddBottom.getChildren().add(createItemAdd);
-        hboxItemAddBottom.setPadding(new Insets(0, 0, 20, 120));
-        //hboxItemAddBottom.setAlignment(Pos.CENTER);
+        hboxItemAddBottom.getChildren().addAll(createItemAdd, cancelCreate);
+        hboxItemAddBottom.setSpacing(10);
+        hboxItemAddBottom.setPadding(new Insets(0, 0, 20, 0));
+        hboxItemAddBottom.setAlignment(Pos.CENTER);
 
         borderPaneAddItem.setCenter(hboxItemAddCenter);
         borderPaneAddItem.setBottom(hboxItemAddBottom);
 
-        Scene sceneItemAdd = new Scene(borderPaneAddItem,550,200);
-
-        addItemStage.setOnCloseRequest(e -> {
-            this.imageNameLabel.setText("");
-        });
+        Scene sceneItemAdd = new Scene(borderPaneAddItem,500,200);
 
         addItemStage.setScene(sceneItemAdd);
         addItemStage.setResizable(false);
@@ -342,69 +438,207 @@ public class AppStart extends Application {
 
         IngameItem currentItem = this.itemListView.getSelectionModel().getSelectedItem();
 
+        /**
+         * To clear the list everytime a new item is opened, it's a cache list
+         */
+        this.itemImages = new ArrayList<>();
+        /**
+         * If-clause to check if the URLS still lead to legit pictures, otherwise show the sample item picture
+         */
+        currentItem.getImageURLS().forEach(url -> {
+            this.itemImages.add(new ImageView(new Image(url)));
+        });
+
+        this.itemImages.forEach(image -> {
+            if (image.getImage().getHeight() == 0) {
+                this.itemImages.remove(image);
+            }
+        });
+
+        if(this.itemImages.size()==0) {
+            this.itemImages.add(new ImageView(new Image(this.defaultImagePath)));
+            currentItem.addImageURL(this.defaultImagePath);
+        }
 
         /**
-         * If-clause to check if the URL still leads to a legit picture, otherwise show the sample item picture
+         * Set the current displaying image to the first one of the imageList of the currentItem
+         * Alternative: Every IngameItem-Object could have its own imageIndex (field). By doing so, it would be possible
+         * to save the last displayed image and start the showItemStage with the last shown image.
+         * Note: By deleting an image the showItemStage method is recalled to start the stage with the first
+         * image. But if the alternative implementation is realised, it shouldn't start with the first image,
+         * rather with the image before (imageIndex--). If the first image is deleted, the imageIndex obviously
+         * can't be decreased to -1 because an index out of bound would occur. If the first one is deleted
+         * the imageIndex would have to stay.
          */
-        this.itemImage = new ImageView(new Image(currentItem.getImageURL()));
+        this.imageIndex = 0;
+        this.itemImage = this.itemImages.get(this.imageIndex);
+        this.currentImageDisplayedURL = currentItem.getImageURLS().get(this.imageIndex);
 
-        if(this.itemImage.getImage().getHeight()==0) {
-            this.itemImage = new ImageView(new Image(this.defaultImagePath));
-        }
+        /**
+         * Old version using one single image each item
+         */
+//        this.itemImage = new ImageView(new Image(currentItem.getImageURL()));
+
+//        if(this.itemImage.getImage().getHeight()==0) {
+//            this.itemImage = new ImageView(new Image(this.defaultImagePath));
+//        }
 
         Button changeItemImage = new Button();
         changeItemImage.setText("Change Image");
         changeItemImage.setOnAction(e -> {
-            String imageName = this.addImageViaFileChooser();
-            if (!imageName.equals("None selected")) {
-                currentItem.updateImageURL(this.imagePathSelected);
-                this.imagePathSelected = defaultImagePath;
+            this.addImageViaFileChooser();
+            if (!this.imagePathSelected.equals("None selected")) {
+                currentItem.updateImageURL(this.currentImageDisplayedURL, this.imagePathSelected);
+                this.imagePathSelected = this.defaultImagePath;
             } else {
-                currentItem.updateImageURL(this.defaultImagePath);
+                currentItem.updateImageURL(this.currentImageDisplayedURL, this.defaultImagePath);
             }
-            this.itemImage = new ImageView(new Image(currentItem.getImageURL()));
+            /**
+             * Commented out -> Reason: after this action, this window is closed and reopened via calling. Therefore
+             * The itemImage is going to be assigned at the start of the method again -> This should not be necessary!
+             */
+//            this.itemImage = new ImageView(new Image(currentItem.getImageURL()));
             showItemStage.close();
             this.showItemStage();
         });
+
+        Button addItemImage = new Button();
+        addItemImage.setText("Add Image");
+        addItemImage.setOnAction(e -> {
+            this.addImageViaFileChooser();
+            if (!this.currentImageDisplayedURL.equals(this.defaultImagePath)) {
+                if (!imagePathSelected.equals("None Selected") && !currentItem.getImageURLS().contains(this.imagePathSelected)) {
+                    currentItem.addImageURL(this.imagePathSelected);
+                }
+            } else {
+                if (!imagePathSelected.equals("None Selected")) {
+                    currentItem.updateImageURL(this.defaultImagePath, this.imagePathSelected);
+                }
+            }
+            this.imagePathSelected = this.defaultImagePath;
+            showItemStage.close();
+            this.showItemStage();
+        });
+
 
         Button deleteItemImage = new Button();
         deleteItemImage.setText("Delete image");
         deleteItemImage.setOnAction(a -> {
-            currentItem.updateImageURL(this.defaultImagePath);
-            this.itemImage = new ImageView(new Image(currentItem.getImageURL()));
+            if (this.itemImages.size() > 1) {
+                currentItem.deleteSingleImageURL(this.currentImageDisplayedURL);
+            } else {
+                currentItem.updateImageURL(this.itemImage.getImage().toString(), this.defaultImagePath);
+            }
+            /**
+             * Same reason as above
+             */
+//            this.itemImage = new ImageView(new Image(currentItem.getImageURL()));
             showItemStage.close();
             this.showItemStage();
         });
 
-        HBox hboxButtonsUnderImageLeft = new HBox();
-        hboxButtonsUnderImageLeft.setSpacing(15);
-        hboxButtonsUnderImageLeft.setAlignment(Pos.CENTER);
-        hboxButtonsUnderImageLeft.getChildren().addAll(changeItemImage, deleteItemImage);
+        Button deleteAllItemImages = new Button();
+        deleteAllItemImages.setText("Delete all images");
+        deleteAllItemImages.setOnAction(e -> {
+            currentItem.deleteImageURLS();
+            showItemStage.close();
+            this.showItemStage();
+        });
+
+        Button prevImageButton = new Button();
+        prevImageButton.setText("<");
+        if(this.imageIndex==0) {
+            prevImageButton.setVisible(false);
+        }
+
+        Button nextImageButton = new Button();
+        nextImageButton.setText(">");
+        if(this.imageIndex>=this.itemImages.size()-1) {
+            nextImageButton.setVisible(false);
+        }
+
+        HBox hboxButtonsUnderImageLeft1 = new HBox();
+        hboxButtonsUnderImageLeft1.setSpacing(15);
+        hboxButtonsUnderImageLeft1.setAlignment(Pos.CENTER);
+        hboxButtonsUnderImageLeft1.getChildren().addAll(changeItemImage, deleteItemImage);
+
+        HBox hboxButtonsUnderImageLeft2 = new HBox();
+        hboxButtonsUnderImageLeft2.setSpacing(15);
+        hboxButtonsUnderImageLeft2.setAlignment(Pos.CENTER);
+        hboxButtonsUnderImageLeft2.getChildren().addAll(addItemImage, deleteAllItemImages);
+
+        HBox hboxImageAndPrevNextButtons = new HBox();
+        hboxImageAndPrevNextButtons.setSpacing(5);
+        hboxImageAndPrevNextButtons.setAlignment(Pos.CENTER);
+        hboxImageAndPrevNextButtons.getChildren().addAll(prevImageButton, itemImage, nextImageButton);
+
+        /**
+         * The actual events are programmed later because to work properly those methods need access to
+         * the Hboxes where the image is added in and those are declared after the button section.
+         */
+        nextImageButton.setOnAction(e -> {
+            prevImageButton.setVisible(true);
+            this.imageIndex++;
+            if (this.imageIndex == this.itemImages.size() - 1) {
+                nextImageButton.setVisible(false);
+            }
+            this.itemImage = this.itemImages.get(this.imageIndex);
+            this.currentImageDisplayedURL = currentItem.getImageURLS().get(this.imageIndex);
+            hboxImageAndPrevNextButtons.getChildren().clear();
+            hboxImageAndPrevNextButtons.getChildren().addAll(prevImageButton, itemImage, nextImageButton);
+        });
+
+        prevImageButton.setOnAction(e -> {
+            nextImageButton.setVisible(true);
+            this.imageIndex--;
+            if (this.imageIndex == 0) {
+                prevImageButton.setVisible(false);
+            }
+            this.itemImage = this.itemImages.get(this.imageIndex);
+            this.currentImageDisplayedURL = currentItem.getImageURLS().get(this.imageIndex);
+            hboxImageAndPrevNextButtons.getChildren().clear();
+            hboxImageAndPrevNextButtons.getChildren().addAll(prevImageButton, itemImage, nextImageButton);
+        });
 
         VBox vboxItemImageLeft = new VBox();
         vboxItemImageLeft.setAlignment(Pos.CENTER);
-        vboxItemImageLeft.setPadding(new Insets(0, 0, 0, 40));
-        vboxItemImageLeft.setSpacing(25);
-        vboxItemImageLeft.getChildren().addAll(itemImage, hboxButtonsUnderImageLeft);
+        vboxItemImageLeft.setPadding(new Insets(0, 0, 0, 15));
+        vboxItemImageLeft.setSpacing(15);
+        vboxItemImageLeft.getChildren().addAll(hboxImageAndPrevNextButtons, hboxButtonsUnderImageLeft1, hboxButtonsUnderImageLeft2);
 
+        /**
+         * showItemStage is divided in two parts by the following big if define. If the if-statement results true, the
+         * selected item has been marked as an auction-item (via the checkbox in the addItemStage). If the if-statement results
+         * false the item is a shop-item. Both item-kinds need different layouts and instead of creating two methods
+         * it is combined in one because both uses the same logic to set the size via the imagesize and more stuff they
+         * have in common
+         */
         if(currentItem.getAuctionState()) {
             showItemStage.setTitle(this.itemListView.getSelectionModel().getSelectedItem().getItemName() + " [Auction]");
 
+            /**
+             * hboxBlaBla.getChildren().add(NodeX) ... later ... hboxBlaBla.getChildren().add(NodeX)
+             * Even though its the same Node which is added, it won't refresh the Node, it will in fact add it a second time.
+             * Therefore if a Node is meant to be refreshed the Node should be removed explicit or the whole hbox has to be
+             * cleared and the node has to be readded
+             */
+            this.hboxForSoldTextOnly.getChildren().clear();
+
             Text showItemAuctionSoldText = new Text();
+//            showItemAuctionSoldText.setStyle("-fx-font-weight: bold;-fx-font-size: 14;-fx-fill: white;-fx-stroke: black;-fx-str-width: 1");
+            showItemAuctionSoldText.setStyle("-fx-font-weight: bold;-fx-font-size: 14");
             if(currentItem.getOfferWon()!=null) {
                 showItemAuctionSoldText.setText("Sold for: " + currentItem.getOfferWon().toString());
             } else {
                 showItemAuctionSoldText.setText("Not sold yet!");
             }
-//            showItemAuctionSoldText.setStyle("-fx-font-weight: bold;-fx-font-size: 14;-fx-fill: white;-fx-stroke: black;-fx-str-width: 1");
-            showItemAuctionSoldText.setStyle("-fx-font-weight: bold;-fx-font-size: 14");
 
             Button addOfferToItem = new Button();
             addOfferToItem.setText("Add offer");
             addOfferToItem.setPrefWidth(100);
             addOfferToItem.setOnAction(a -> {
                 if (currentItem.getOfferWon() == null) {
-                    addOfferToItemStage(currentItem);
+                    this.addOfferToItemStage(currentItem);
                 }
             });
 
@@ -501,7 +735,7 @@ public class AppStart extends Application {
             Text totalAmountLabel = new Text();
             //totalAmountLabel.setPrefWidth(150);
             totalAmountLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 20;-fx-fill: white;-fx-stroke: black;-fx-str-width: 1");
-            totalAmountLabel.setText(String.valueOf(currentItem.getAmountAvailable()));
+            totalAmountLabel.setText(String.format("%,d",currentItem.getAmountAvailable()));
 
             Text shopPriceLabel = new Text();
             shopPriceLabel.setText("Shop Price");
@@ -513,7 +747,7 @@ public class AppStart extends Application {
 
             Text shopPerinLabel = new Text();
             shopPerinLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 20;-fx-fill: white;-fx-stroke: black;-fx-str-width: 1");
-            shopPerinLabel.setText(String.valueOf(currentItem.getShopPerin()));
+            shopPerinLabel.setText(String.format("%,d",currentItem.getShopPerin()));
 
             Text shopPenyaHeadlineLabel = new Text();
             shopPenyaHeadlineLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 20;-fx-fill: white;-fx-stroke: black;-fx-str-width: 1");
@@ -521,7 +755,7 @@ public class AppStart extends Application {
 
             Text shopPenyaLabel = new Text();
             shopPenyaLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 20;-fx-fill: white;-fx-stroke: black;-fx-str-width: 1");
-            shopPenyaLabel.setText(String.valueOf(currentItem.getShopPenya()));
+            shopPenyaLabel.setText(String.format("%,d",currentItem.getShopPenya()));
 
             Text shopEachLabel = new Text();
             shopEachLabel.setStyle("-fx-font-weight: bold;-fx-font-size: 20;-fx-fill: white;-fx-stroke: black;-fx-str-width: 1");
@@ -547,7 +781,7 @@ public class AppStart extends Application {
                 changeAmountFinalButton.setOnAction(a -> {
                     if (changeAmountTextField.getText() != null && Integer.parseInt(changeAmountTextField.getText()) >= 0) {
                         currentItem.updateAmountAvailable(Integer.parseInt(changeAmountTextField.getText()));
-                        totalAmountLabel.setText(changeAmountTextField.getText());
+                        totalAmountLabel.setText(String.format("%,d",Integer.valueOf(changeAmountTextField.getText())));
                         this.refreshItemList();
                         changeAmountStage.close();
                     }
@@ -673,7 +907,7 @@ public class AppStart extends Application {
                 soldItemAmountTextField.setMaxWidth(60);
 
                 Label soldItemAmountLabel = new Label();
-                soldItemAmountLabel.setText("out of " + currentItem.getAmountAvailable() + " available " + currentItem.getItemName() + "(s)");
+                soldItemAmountLabel.setText("out of " + String.format("%,d",currentItem.getAmountAvailable()) + " available " + currentItem.getItemName() + "(s)");
 
                 Button soldItemAmountButton = new Button();
                 soldItemAmountButton.setText("Sold");
@@ -683,7 +917,8 @@ public class AppStart extends Application {
                         this.itemShopHistoryView.setItems(FXCollections.observableList(currentItem.getSellHistoryList()));
                         totalAmountLabel.setText(String.valueOf(currentItem.getAmountAvailable()));
 //                        currentItem.getSellHistoryList().forEach(System.out::println);
-                        refreshItemList();
+                        this.refreshItemList();
+                        this.calculateEarningPerItem(currentItem);
                         soldItemStage.close();
                     }
                 });
@@ -724,15 +959,28 @@ public class AppStart extends Application {
             HBox hboxItemShopListView = new HBox();
             hboxItemShopListView.getChildren().add(this.itemShopHistoryView);
 
+            this.calculateEarningPerItem(currentItem);
+
+            HBox hboxItemSoldTextSum = new HBox();
+            hboxItemSoldTextSum.setMaxWidth(hboxItemShopListView.getWidth());
+            hboxItemSoldTextSum.setStyle("-fx-background-color: whitesmoke");
+            hboxItemSoldTextSum.getChildren().add(this.textItemSoldSum);
+
             VBox vboxAllStuff = new VBox();
-            vboxAllStuff.setPadding(new Insets(25, 0, 0, 50));
+            vboxAllStuff.setPadding(new Insets(25, 0, 0, 15));
             vboxAllStuff.setSpacing(15);
-            vboxAllStuff.getChildren().addAll(totalAmountHeadlineLabel, hboxUpperShopItemStuff, hboxItemShopListView);
+            vboxAllStuff.getChildren().addAll(totalAmountHeadlineLabel, hboxUpperShopItemStuff, hboxItemShopListView, hboxItemSoldTextSum);
 
             borderPaneShowItem.setCenter(vboxAllStuff);
         }
 
         borderPaneShowItem.setLeft(vboxItemImageLeft);
+
+        /**
+         * TODO:
+         * Think about new size-formular for the scene. The stage is getting to big if the loaded image is just too big!
+         * idea: set a specific size of the image via the constructor and remain the ratio, easier to have a general size
+         */
         if(currentItem.getAuctionState()) {
             Scene sceneShowItem = new Scene(borderPaneShowItem, this.itemImage.getImage().getWidth() + 700, this.itemImage.getImage().getHeight() + 100);
             this.itemOffersListView.setPrefSize(sceneShowItem.getWidth() - this.itemImage.getImage().getWidth() - 150, this.itemImage.getImage().getHeight()-50);
@@ -741,7 +989,7 @@ public class AppStart extends Application {
             showItemStage.setScene(sceneShowItem);
         } else {
             Scene sceneShowItem = new Scene(borderPaneShowItem, this.itemImage.getImage().getWidth() + 600, this.itemImage.getImage().getHeight() + 250);
-            this.itemShopHistoryView.setPrefSize(sceneShowItem.getWidth() - this.itemImage.getImage().getWidth() - 115, this.itemImage.getImage().getHeight()-50);
+            this.itemShopHistoryView.setPrefSize(sceneShowItem.getWidth() - this.itemImage.getImage().getWidth() - 115, this.itemImage.getImage().getHeight()-150);
             showItemStage.setScene(sceneShowItem);
         }
         showItemStage.setResizable(false);
@@ -996,37 +1244,64 @@ public class AppStart extends Application {
      */
     public void refreshItemList() {
         this.allIngameItems.sort((s1, s2) -> s1.compareTo(s2));
-        this.totalPerinAmountLabel.setText("0");
-        this.totalPenyaAmountLabel.setText("0");
+        this.totalPerinAmountValue = 0;
+        this.totalPenyaAmountValue = 0;
         for(IngameItem ign:this.allIngameItems) {
             if(ign.getAuctionState()) {
                 if(ign.getOfferWon()!=null) {
-                    if ((Integer.parseInt(this.totalPenyaAmountLabel.getText()) + ign.getOfferWon().getPenya()) >= 100000000) {
-                        this.totalPerinAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPerinAmountLabel.getText()) + ign.getOfferWon().getPerin() + 1));
-                        this.totalPenyaAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPenyaAmountLabel.getText()) + ign.getOfferWon().getPenya() - 100000000));
+                    if((this.totalPenyaAmountValue + ign.getOfferWon().getPenya()) >= 100000000) {
+                        this.totalPerinAmountValue += ign.getOfferWon().getPerin() + 1;
+                        this.totalPenyaAmountValue += ign.getOfferWon().getPenya() - 100000000;
                     } else {
-                        this.totalPerinAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPerinAmountLabel.getText()) + ign.getOfferWon().getPerin()));
-                        this.totalPenyaAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPenyaAmountLabel.getText()) + ign.getOfferWon().getPenya()));
+                        this.totalPerinAmountValue += ign.getOfferWon().getPerin();
+                        this.totalPenyaAmountValue += ign.getOfferWon().getPenya();
                     }
                 }
             } else {
                 for(SellHistory sh:ign.getSellHistoryList()) {
-                    if((Integer.parseInt(this.totalPenyaAmountLabel.getText()) + sh.getPenyaGot()) >= 100000000) {
-                        this.totalPerinAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPerinAmountLabel.getText()) + sh.getPerinGot() + 1));
-                        this.totalPenyaAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPenyaAmountLabel.getText()) + sh.getPenyaGot() - 100000000));
+                    if((this.totalPenyaAmountValue + sh.getPenyaGot()) >= 100000000) {
+                        this.totalPerinAmountValue += sh.getPerinGot() + 1;
+                        this.totalPenyaAmountValue += sh.getPenyaGot() - 100000000;
                     } else {
-                        this.totalPerinAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPerinAmountLabel.getText()) + sh.getPerinGot()));
-                        this.totalPenyaAmountLabel.setText(String.valueOf(Integer.parseInt(this.totalPenyaAmountLabel.getText()) + sh.getPenyaGot()));
+                        this.totalPerinAmountValue += sh.getPerinGot();
+                        this.totalPenyaAmountValue += sh.getPenyaGot();
                     }
                 }
             }
         }
+        this.totalPerinAmountLabel.setText(String.format("%,d",this.totalPerinAmountValue));
+        this.totalPenyaAmountLabel.setText(String.format("%,d",this.totalPenyaAmountValue));
         this.itemListView.setItems(FXCollections.observableList(new ArrayList<IngameItem>()));
         this.itemListView.setItems(FXCollections.observableList(this.allIngameItems));
     }
 
+    private void refreshManageImageListView(List<String> selectedImages) {
+        List<ImageView> localImageViewsFromSelectedImages = new ArrayList<>();
+        selectedImages.forEach(a -> {
+            localImageViewsFromSelectedImages.add(new ImageView(new Image(a, 200, 200, true, true)));
+        });
+        this.addedImagesListView.setItems(FXCollections.observableList(localImageViewsFromSelectedImages));
+        this.addedImagesListView.setFixedCellSize(200);
+    }
+
     private void refreshItemOfferList(IngameItem currentItem) {
         this.itemOffersListView.setItems(FXCollections.observableList(currentItem.getOfferList()));
+    }
+
+    private void calculateEarningPerItem(IngameItem currentItem) {
+        this.textItemSoldSum.setStyle("-fx-font-weight: bold;-fx-font-size: 14");
+        this.perinFromSellHistorySum = 0;
+        this.penyaFromSellHistorySum = 0;
+        currentItem.getSellHistoryList().forEach(sh -> {
+            this.penyaFromSellHistorySum += sh.getPenyaGot();
+            this.perinFromSellHistorySum += sh.getPerinGot();
+        });
+        if(this.penyaFromSellHistorySum >= 100000000) {
+            this.perinFromSellHistorySum += this.penyaFromSellHistorySum/100000000;
+            this.penyaFromSellHistorySum -= (this.penyaFromSellHistorySum/100000000)*100000000;
+        }
+        this.textItemSoldSum.setText("Total earning via this item: " + String.format("%,d",this.perinFromSellHistorySum) + " Perin " + String.format("%,d",this.penyaFromSellHistorySum) + " Penya   [" + String.format("%,d",currentItem.getAmountSold()) + " sold]");
+
     }
 
     public void transmitItemList(List<IngameItem> allIngameItems) {
