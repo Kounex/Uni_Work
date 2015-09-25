@@ -15,17 +15,17 @@ import java.time.LocalDate;
  * String bidderName: name of the player who placed the bid
  */
 public class Offer implements Serializable{
-    private int perin;
-    private int penya;
+    private long perin;
+    private long penya;
     private String tradeItems;
     private String bidderName;
     private LocalDate dateOffered;
     private LocalDate dateOfferAccepted;
     private IngameItem item;
 
-    public Offer(int perin, int penya, String tradeItems, String bidderName, IngameItem item) {
+    public Offer(long perin, long penya, String tradeItems, String bidderName, IngameItem item) {
         if(penya >= 100000000) {
-            int perinsViaWrapAround = penya/100000000;
+            long perinsViaWrapAround = penya/100000000;
             this.perin = perin + perinsViaWrapAround;
             this.penya = penya - (perinsViaWrapAround*100000000);
         } else {
@@ -38,11 +38,11 @@ public class Offer implements Serializable{
         this.dateOffered = LocalDate.now();
     }
 
-    public int getPerin() {
+    public long getPerin() {
         return this.perin;
     }
 
-    public int getPenya() {
+    public long getPenya() {
         return this.penya;
     }
 

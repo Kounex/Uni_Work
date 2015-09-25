@@ -61,6 +61,9 @@ public class AppStart extends Application {
     String currentImageDisplayedURL;
     /**
      * Those will be used to calculate the total earning from each shopItem itself
+     * Those values are long because the penya value (which usually is 1-100 million) will be added
+     * for each sold stack and in a very long sellhistory this could end in wrap arounds!
+     * Maybe even longs are not big enough.. should be calculated some day to see if it is realistic!
      */
     long penyaFromSellHistorySum;
     long perinFromSellHistorySum;
@@ -452,6 +455,8 @@ public class AppStart extends Application {
         borderPaneShowItem.setStyle("-fx-background-image: url('insanityFlyff/images/comm__flyff_screen_by_unrealsmoker-d5awftg.jpg');-fx-background-size: cover");
 
         IngameItem currentItem = this.itemListView.getSelectionModel().getSelectedItem();
+
+        this.textItemSoldSum.setStyle("-fx-font-weight: bold;-fx-font-size: 14");
 
         /**
          * To clear the list everytime a new item is opened, it's a cache list
@@ -871,13 +876,13 @@ public class AppStart extends Application {
                 setShopPriceFinalButton.setText("Set price");
                 setShopPriceFinalButton.setOnAction(a -> {
                     if (!setShopPricePerinTextField.getText().isEmpty() || !setShopPricePenyaTextField.getText().isEmpty()) {
-                        if (Integer.parseInt(setShopPricePenyaTextField.getText()) >= 100000000) {
-                            int perinsViaWrapAround = Integer.parseInt(setShopPricePenyaTextField.getText()) / 100000000;
-                            currentItem.updateShopPerin(Integer.parseInt(setShopPricePerinTextField.getText()) + perinsViaWrapAround);
-                            currentItem.updateShopPenya(Integer.parseInt(setShopPricePenyaTextField.getText()) - perinsViaWrapAround * 100000000);
+                        if (Long.parseLong(setShopPricePenyaTextField.getText()) >= 100000000) {
+                            long perinsViaWrapAround = Long.parseLong(setShopPricePenyaTextField.getText()) / 100000000;
+                            currentItem.updateShopPerin(Long.parseLong(setShopPricePerinTextField.getText()) + perinsViaWrapAround);
+                            currentItem.updateShopPenya(Long.parseLong(setShopPricePenyaTextField.getText()) - perinsViaWrapAround * 100000000);
                         } else {
-                            currentItem.updateShopPerin(Integer.parseInt(setShopPricePerinTextField.getText()));
-                            currentItem.updateShopPenya(Integer.parseInt(setShopPricePenyaTextField.getText()));
+                            currentItem.updateShopPerin(Long.parseLong(setShopPricePerinTextField.getText()));
+                            currentItem.updateShopPenya(Long.parseLong(setShopPricePenyaTextField.getText()));
                         }
                         shopPerinLabel.setText(String.valueOf(currentItem.getShopPerin()));
                         shopPenyaLabel.setText(String.valueOf(currentItem.getShopPenya()));
@@ -935,44 +940,52 @@ public class AppStart extends Application {
             soldItemsButton.setText("Sold");
             soldItemsButton.setPrefWidth(100);
             soldItemsButton.setOnAction(e -> {
-                Stage soldItemStage = new Stage();
-                soldItemStage.setResizable(false);
-                soldItemStage.initModality(Modality.APPLICATION_MODAL);
-                soldItemStage.setTitle("Sold");
-
-                BorderPane borderPaneItemSold = new BorderPane();
-
-                TextField soldItemAmountTextField = new TextField();
-                soldItemAmountTextField.setPrefWidth(60);
-                soldItemAmountTextField.setMaxWidth(60);
-
-                Label soldItemAmountLabel = new Label();
-                soldItemAmountLabel.setText("out of " + String.format("%,d",currentItem.getAmountAvailable()) + " available " + currentItem.getItemName() + "(s)");
-
-                Button soldItemAmountButton = new Button();
-                soldItemAmountButton.setText("Sold");
-                soldItemAmountButton.setOnAction(a -> {
-                    if (!soldItemAmountTextField.getText().isEmpty() && Integer.parseInt(soldItemAmountTextField.getText()) > 0 && Integer.parseInt(soldItemAmountTextField.getText()) <= currentItem.getAmountAvailable()) {
-                        currentItem.updateSellHistory(currentItem.getShopPerin(), currentItem.getShopPenya(), Integer.parseInt(soldItemAmountTextField.getText()));
-                        this.itemShopHistoryView.setItems(FXCollections.observableList(currentItem.getSellHistoryList()));
-                        totalAmountLabel.setText(String.valueOf(currentItem.getAmountAvailable()));
-//                        currentItem.getSellHistoryList().forEach(System.out::println);
-                        this.refreshItemList();
-                        this.calculateEarningPerItem(currentItem);
-                        soldItemStage.close();
+                boolean priceSet = true;
+                if(Long.parseLong(shopPerinLabel.getText()) == 0 && Long.parseLong(shopPenyaLabel.getText()) == 0) {
+                    if(!this.decisionMessageBox("Warning", "Are you sure you \"sold\" some copies of this item for free?")) {
+                        priceSet = false;
                     }
-                });
+                }
+                if(priceSet) {
+                    Stage soldItemStage = new Stage();
+                    soldItemStage.setResizable(false);
+                    soldItemStage.initModality(Modality.APPLICATION_MODAL);
+                    soldItemStage.setTitle("Sold");
 
-                VBox vboxSoldItemAll = new VBox();
-                vboxSoldItemAll.setPadding(new Insets(15, 15, 15, 15));
-                vboxSoldItemAll.setSpacing(15);
-                vboxSoldItemAll.setAlignment(Pos.CENTER);
-                vboxSoldItemAll.getChildren().addAll(soldItemAmountTextField, soldItemAmountLabel, soldItemAmountButton);
+                    BorderPane borderPaneItemSold = new BorderPane();
 
-                borderPaneItemSold.setCenter(vboxSoldItemAll);
+                    TextField soldItemAmountTextField = new TextField();
+                    soldItemAmountTextField.setPrefWidth(60);
+                    soldItemAmountTextField.setMaxWidth(60);
 
-                soldItemStage.setScene(new Scene(borderPaneItemSold, soldItemAmountLabel.getText().length() * 7, 150));
-                soldItemStage.show();
+                    Label soldItemAmountLabel = new Label();
+                    soldItemAmountLabel.setText("out of " + String.format("%,d", currentItem.getAmountAvailable()) + " available " + currentItem.getItemName() + "(s)");
+
+                    Button soldItemAmountButton = new Button();
+                    soldItemAmountButton.setText("Sold");
+                    soldItemAmountButton.setOnAction(a -> {
+                        if (!soldItemAmountTextField.getText().isEmpty() && Integer.parseInt(soldItemAmountTextField.getText()) > 0 && Integer.parseInt(soldItemAmountTextField.getText()) <= currentItem.getAmountAvailable()) {
+                            currentItem.updateSellHistory(currentItem.getShopPerin(), currentItem.getShopPenya(), Integer.parseInt(soldItemAmountTextField.getText()));
+                            this.itemShopHistoryView.setItems(FXCollections.observableList(currentItem.getSellHistoryList()));
+                            totalAmountLabel.setText(String.valueOf(currentItem.getAmountAvailable()));
+//                        currentItem.getSellHistoryList().forEach(System.out::println);
+                            this.refreshItemList();
+                            this.calculateEarningPerItem(currentItem);
+                            soldItemStage.close();
+                        }
+                    });
+
+                    VBox vboxSoldItemAll = new VBox();
+                    vboxSoldItemAll.setPadding(new Insets(15, 15, 15, 15));
+                    vboxSoldItemAll.setSpacing(15);
+                    vboxSoldItemAll.setAlignment(Pos.CENTER);
+                    vboxSoldItemAll.getChildren().addAll(soldItemAmountTextField, soldItemAmountLabel, soldItemAmountButton);
+
+                    borderPaneItemSold.setCenter(vboxSoldItemAll);
+
+                    soldItemStage.setScene(new Scene(borderPaneItemSold, soldItemAmountLabel.getText().length() * 7, 150));
+                    soldItemStage.show();
+                }
             });
 
             HBox hboxTotalAmountTextChangeButton = new HBox();
@@ -1127,7 +1140,7 @@ public class AppStart extends Application {
         saveOffer.setText("Save");
         saveOffer.setOnAction(e -> {
             if (!perinTextField.getText().isEmpty() && !penyaTextField.getText().isEmpty() && !bidderNameTextField.getText().isEmpty()) {
-                currentItem.addOffer(Integer.parseInt(perinTextField.getText()), Integer.parseInt(penyaTextField.getText()), tradeItemTextField.getText(), bidderNameTextField.getText());
+                currentItem.addOffer(Long.parseLong(perinTextField.getText()), Long.parseLong(penyaTextField.getText()), tradeItemTextField.getText(), bidderNameTextField.getText());
                 this.refreshItemOfferList(currentItem);
                 addOfferStage.close();
             }
@@ -1347,7 +1360,6 @@ public class AppStart extends Application {
     }
 
     private void calculateEarningPerItem(IngameItem currentItem) {
-        this.textItemSoldSum.setStyle("-fx-font-weight: bold;-fx-font-size: 14");
         this.perinFromSellHistorySum = 0;
         this.penyaFromSellHistorySum = 0;
         currentItem.getSellHistoryList().forEach(sh -> {

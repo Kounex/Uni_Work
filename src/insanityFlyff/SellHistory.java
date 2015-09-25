@@ -14,7 +14,7 @@ public class SellHistory implements Serializable {
     private int amountSold;
     LocalDate dateSold;
 
-    public SellHistory(int perinEach, long penyaEach, int amountSold) {
+    public SellHistory(long perinEach, long penyaEach, int amountSold) {
         this.perinEach = perinEach;
         this.penyaEach = penyaEach;
         this.amountSold = amountSold;

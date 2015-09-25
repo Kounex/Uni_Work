@@ -15,8 +15,8 @@ public class IngameItem implements Serializable, Comparable {
     private List<SellHistory> sellHistoryList = new ArrayList<>();
     private int amountAvailable;
     private int amountSold;
-    private int shopPerin;
-    private int shopPenya;
+    private long shopPerin;
+    private long shopPenya;
     private boolean auction;
 
     /**
@@ -37,7 +37,7 @@ public class IngameItem implements Serializable, Comparable {
         this.imageURLS = imageURLS;
     }
 
-    public void addOffer(int perin, int penya, String tradeItem, String bidderName) {
+    public void addOffer(long perin, long penya, String tradeItem, String bidderName) {
         this.offerList.add(new Offer(perin,penya,tradeItem,bidderName,this));
     }
 
@@ -76,15 +76,15 @@ public class IngameItem implements Serializable, Comparable {
         this.amountAvailable = amountAvailable;
     }
 
-    public void updateShopPerin(int shopPerin) {
+    public void updateShopPerin(long shopPerin) {
         this.shopPerin = shopPerin;
     }
 
-    public void updateShopPenya(int shopPenya) {
+    public void updateShopPenya(long shopPenya) {
         this.shopPenya = shopPenya;
     }
 
-    public void updateSellHistory(int perinEach, int penyaEach, int amountSold) {
+    public void updateSellHistory(long perinEach, long penyaEach, int amountSold) {
         this.amountAvailable -= amountSold;
         this.amountSold += amountSold;
         this.sellHistoryList.add(new SellHistory(perinEach, penyaEach, amountSold));
@@ -106,11 +106,11 @@ public class IngameItem implements Serializable, Comparable {
         return this.amountSold;
     }
 
-    public int getShopPerin() {
+    public long getShopPerin() {
         return this.shopPerin;
     }
 
-    public int getShopPenya() {
+    public long getShopPenya() {
         return this.shopPenya;
     }
 
