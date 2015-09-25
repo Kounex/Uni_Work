@@ -461,7 +461,16 @@ public class AppStart extends Application {
          * If-clause to check if the URLS still lead to legit pictures, otherwise show the sample item picture
          */
         currentItem.getImageURLS().forEach(url -> {
-            this.itemImages.add(new ImageView(new Image(url)));
+            /**
+             * Old Version where the images were just created with the original size. If too big images were chosen
+             * the showItemStage would be way off and shitty
+             */
+//            this.itemImages.add(new ImageView(new Image(url)));
+            /**
+             * New Version where all images will have the size but keep the aspect ratio, therefore bigger images will
+             * be scaled down to fit into the fix stage
+             */
+            this.itemImages.add((new ImageView(new Image(url,450,450,true,true))));
         });
 
         this.itemImages.forEach(image -> {
@@ -582,10 +591,22 @@ public class AppStart extends Application {
         hboxButtonsUnderImageLeft2.setAlignment(Pos.CENTER);
         hboxButtonsUnderImageLeft2.getChildren().addAll(addItemImage, deleteAllItemImages);
 
+        /**
+         * The image is getting resized to a specific size with the same aspect ratio! Because images may have
+         * different base width's and height's the resize is working different, if the image is wider,
+         * the resize is wider as well and the same for the height. Thats why the Hbox has to be bigger then
+         * the resize of the image to avoid outsizing the hbox and destroying the formating. Those sizes
+         * may still be wrong for some "extreme" images, but seems to work for now
+         */
+        HBox hboxForImageViewOnly = new HBox();
+        hboxForImageViewOnly.setPrefSize(500, 500);
+        hboxForImageViewOnly.setAlignment(Pos.CENTER);
+        hboxForImageViewOnly.getChildren().add(this.itemImage);
+
         HBox hboxImageAndPrevNextButtons = new HBox();
         hboxImageAndPrevNextButtons.setSpacing(5);
         hboxImageAndPrevNextButtons.setAlignment(Pos.CENTER);
-        hboxImageAndPrevNextButtons.getChildren().addAll(prevImageButton, itemImage, nextImageButton);
+        hboxImageAndPrevNextButtons.getChildren().addAll(prevImageButton, hboxForImageViewOnly, nextImageButton);
 
         /**
          * The actual events are programmed later because to work properly those methods need access to
@@ -599,8 +620,10 @@ public class AppStart extends Application {
             }
             this.itemImage = this.itemImages.get(this.imageIndex);
             this.currentImageDisplayedURL = currentItem.getImageURLS().get(this.imageIndex);
-            hboxImageAndPrevNextButtons.getChildren().clear();
-            hboxImageAndPrevNextButtons.getChildren().addAll(prevImageButton, itemImage, nextImageButton);
+//            hboxImageAndPrevNextButtons.getChildren().clear();
+//            hboxImageAndPrevNextButtons.getChildren().addAll(prevImageButton, hboxForImageViewOnly, nextImageButton);
+            hboxForImageViewOnly.getChildren().clear();
+            hboxForImageViewOnly.getChildren().add(this.itemImage);
         });
 
         prevImageButton.setOnAction(e -> {
@@ -611,8 +634,10 @@ public class AppStart extends Application {
             }
             this.itemImage = this.itemImages.get(this.imageIndex);
             this.currentImageDisplayedURL = currentItem.getImageURLS().get(this.imageIndex);
-            hboxImageAndPrevNextButtons.getChildren().clear();
-            hboxImageAndPrevNextButtons.getChildren().addAll(prevImageButton, itemImage, nextImageButton);
+//            hboxImageAndPrevNextButtons.getChildren().clear();
+//            hboxImageAndPrevNextButtons.getChildren().addAll(prevImageButton, hboxForImageViewOnly, nextImageButton);
+            hboxForImageViewOnly.getChildren().clear();
+            hboxForImageViewOnly.getChildren().add(this.itemImage);
         });
 
         VBox vboxItemImageLeft = new VBox();
@@ -992,19 +1017,37 @@ public class AppStart extends Application {
         borderPaneShowItem.setLeft(vboxItemImageLeft);
 
         /**
-         * TODO:
-         * Think about new size-formular for the scene. The stage is getting to big if the loaded image is just too big!
-         * idea: set a specific size of the image via the constructor and remain the ratio, easier to have a general size
+         * Old Version which calculated the scene size via the item image. Dynamic but gets buggy (obviously) if the image
+         * is just too big! Basically another way could be to set a max size and let the image downscale to the max size
+         * if the original image is bigger then that. Otherwise let the scene be resized to fit the image
+         * BUT: Still looks ugly
+         */
+//        if(currentItem.getAuctionState()) {
+//            Scene sceneShowItem = new Scene(borderPaneShowItem, this.itemImage.getImage().getWidth() + 700, this.itemImage.getImage().getHeight() + 100);
+//            this.itemOffersListView.setPrefSize(sceneShowItem.getWidth() - this.itemImage.getImage().getWidth() - 150, this.itemImage.getImage().getHeight()-50);
+//            this.itemOffersListView.setMaxHeight(this.itemImage.getImage().getHeight() - 50);
+//            this.hboxForSoldTextOnly.setMaxWidth(sceneShowItem.getWidth() - this.itemImage.getImage().getWidth() - 150);
+//            showItemStage.setScene(sceneShowItem);
+//        } else {
+//            Scene sceneShowItem = new Scene(borderPaneShowItem, this.itemImage.getImage().getWidth() + 600, this.itemImage.getImage().getHeight() + 250);
+//            this.itemShopHistoryView.setPrefSize(sceneShowItem.getWidth() - this.itemImage.getImage().getWidth() - 115, this.itemImage.getImage().getHeight()-150);
+//            showItemStage.setScene(sceneShowItem);
+//        }
+
+        /**
+         * New Version where the size of the scene and the size of the hbox which contains the image is the same. The image
+         * will be rescaled to the same size everytime but as explained earlier may have different aspect ratio from the beginning
+         * and could "destroy" the format. Thats why the hbox is bigger then the image itself to avoid outscaling!
+         * Still not tested extreme image sizes where the ratio is very high like 1px height and 1000px width...
          */
         if(currentItem.getAuctionState()) {
-            Scene sceneShowItem = new Scene(borderPaneShowItem, this.itemImage.getImage().getWidth() + 700, this.itemImage.getImage().getHeight() + 100);
-            this.itemOffersListView.setPrefSize(sceneShowItem.getWidth() - this.itemImage.getImage().getWidth() - 150, this.itemImage.getImage().getHeight()-50);
-            this.itemOffersListView.setMaxHeight(this.itemImage.getImage().getHeight() - 50);
-            this.hboxForSoldTextOnly.setMaxWidth(sceneShowItem.getWidth() - this.itemImage.getImage().getWidth() - 150);
+            Scene sceneShowItem = new Scene(borderPaneShowItem, 1150, 650);
+            this.itemOffersListView.setPrefSize(500, 500);
+            this.hboxForSoldTextOnly.setMaxWidth(500);
             showItemStage.setScene(sceneShowItem);
         } else {
-            Scene sceneShowItem = new Scene(borderPaneShowItem, this.itemImage.getImage().getWidth() + 600, this.itemImage.getImage().getHeight() + 250);
-            this.itemShopHistoryView.setPrefSize(sceneShowItem.getWidth() - this.itemImage.getImage().getWidth() - 115, this.itemImage.getImage().getHeight()-150);
+            Scene sceneShowItem = new Scene(borderPaneShowItem, 1150, 650);
+            this.itemShopHistoryView.setPrefSize(500, 300);
             showItemStage.setScene(sceneShowItem);
         }
         showItemStage.setResizable(false);
