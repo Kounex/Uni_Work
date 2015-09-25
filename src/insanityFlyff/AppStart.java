@@ -72,12 +72,6 @@ public class AppStart extends Application {
     HBox hboxForSoldTextOnly = new HBox();
 
     /**
-     * To have a counter for the amount of images selected in the addItemStage to be used in the lambda expressions
-     * the variable is defined as a field
-     */
-    int imageCounter;
-
-    /**
      * ListView to display all images as ImageViews added via the addItemStage
      */
 
@@ -173,7 +167,7 @@ public class AppStart extends Application {
         renameItemButton.setText("Rename item");
         renameItemButton.setPrefWidth(150);
         renameItemButton.setOnAction(e -> {
-            if (this.itemListView.getSelectionModel().getSelectedItems() != null) {
+            if (this.itemListView.getSelectionModel().getSelectedItem() != null) {
                 renameItem(this.itemListView.getSelectionModel().getSelectedItem());
             }
         });
@@ -182,7 +176,7 @@ public class AppStart extends Application {
         deleteItemButton.setText("Delete Item");
         deleteItemButton.setPrefWidth(150);
         deleteItemButton.setOnAction(e -> {
-            if(this.decisionMessageBox("Warning", "Are you sure you want to delete the selected item? This action can't be undone!")) {
+            if(this.itemListView.getSelectionModel().getSelectedItem() != null && this.decisionMessageBox("Warning", "Are you sure you want to delete the selected item? This action can't be undone!")) {
                 this.allIngameItems.remove(this.itemListView.getSelectionModel().getSelectedItem());
                 this.refreshItemList();
             }
@@ -278,7 +272,8 @@ public class AppStart extends Application {
         /**
          * To display the text as soon as the stage is shown
          */
-        this.imageCounterLabel.setText(imageCounter+" image(s) selected");
+        this.imageCounterLabel.setText("0 image(s) selected");
+        this.addedImagesListView.setFixedCellSize(200);
         this.imageCounterLabel.setStyle("-fx-font-weight: bold; -fx-font-style: oblique");
 
         BorderPane borderPaneAddItem = new BorderPane();
@@ -308,22 +303,40 @@ public class AppStart extends Application {
             manageImagesStage.setTitle("Manage Images");
 
             BorderPane borderPaneManageImages = new BorderPane();
+            borderPaneManageImages.setStyle("-fx-background-image: url('insanityFlyff/images/31725.jpg')");
 
-            /**
-             * TODO:
-             * Add setOnAction events to the buttons (addImage is already working!)
-             */
             Button removeAllImages = new Button();
             removeAllImages.setText("Remove All");
             removeAllImages.setPrefWidth(150);
+            removeAllImages.setOnAction(a -> {
+                selectedImages.clear();
+                this.refreshManageImageListView(selectedImages);
+            });
 
             Button removeSingleImage = new Button();
             removeSingleImage.setText("Remove Image");
             removeSingleImage.setPrefWidth(150);
+            removeSingleImage.setOnAction(a -> {
+                if (this.addedImagesListView.getSelectionModel().getSelectedItem() != null) {
+                    selectedImages.remove(this.addedImagesListView.getSelectionModel().getSelectedIndex());
+                    this.refreshManageImageListView(selectedImages);
+                }
+            });
 
             Button changeSingleImage = new Button();
             changeSingleImage.setText("Change Image");
             changeSingleImage.setPrefWidth(150);
+            changeSingleImage.setOnAction(a -> {
+                if (this.addedImagesListView.getSelectionModel().getSelectedItem() != null) {
+                    int cacheIndex = this.addedImagesListView.getSelectionModel().getSelectedIndex();
+                    this.addImageViaFileChooser();
+                    if (!this.imagePathSelected.equals("None selected")) {
+                        selectedImages.remove(cacheIndex);
+                        selectedImages.add(cacheIndex, this.imagePathSelected);
+                        this.refreshManageImageListView(selectedImages);
+                    }
+                }
+            });
 
             Button addImage = new Button();
             addImage.setText("Add Image");
@@ -331,11 +344,9 @@ public class AppStart extends Application {
             addImage.setOnAction(a -> {
                 String imageName = this.addImageViaFileChooser();
                 if (!imageName.equals("None selected")) {
-                    this.imageCounter++;
                     selectedImages.add(this.imagePathSelected);
                     this.refreshManageImageListView(selectedImages);
                 }
-                this.imageCounterLabel.setText(this.imageCounter + " image(s) selected");
             });
 
             Button doneManageImages = new Button();
@@ -349,14 +360,19 @@ public class AppStart extends Application {
 
             VBox vboxAllButtonsManageImages = new VBox();
             vboxAllButtonsManageImages.setSpacing(25);
-            vboxAllButtonsManageImages.setPadding(new Insets(0,30,0,30));
+            vboxAllButtonsManageImages.setPadding(new Insets(0, 60, 0, 30));
             vboxAllButtonsManageImages.setAlignment(Pos.CENTER);
             vboxAllButtonsManageImages.getChildren().addAll(removeAllImages, removeSingleImage, changeSingleImage, addImage, doneManageImages);
 
-            borderPaneManageImages.setCenter(this.addedImagesListView);
+            HBox hboxForImagesListView = new HBox();
+            hboxForImagesListView.setPrefSize(400,660);
+            hboxForImagesListView.setPadding(new Insets(25,0,25,25));
+            hboxForImagesListView.getChildren().add(this.addedImagesListView);
+
+            borderPaneManageImages.setCenter(hboxForImagesListView);
             borderPaneManageImages.setRight(vboxAllButtonsManageImages);
 
-            Scene manageImagesScene = new Scene(borderPaneManageImages, 600, 600);
+            Scene manageImagesScene = new Scene(borderPaneManageImages, 550, 660);
             manageImagesStage.setScene(manageImagesScene);
             manageImagesStage.setResizable(false);
             manageImagesStage.show();
@@ -388,7 +404,6 @@ public class AppStart extends Application {
                 }
                 this.allIngameItems.add(new IngameItem(Integer.parseInt(itemAmountTextField.getText()), checkBoxAuction.isSelected(), itemNameTextField.getText(), selectedImages));
                 this.refreshItemList();
-                this.imageCounter = 0;
                 addItemStage.close();
             }
         });
@@ -527,7 +542,7 @@ public class AppStart extends Application {
             if (this.itemImages.size() > 1) {
                 currentItem.deleteSingleImageURL(this.currentImageDisplayedURL);
             } else {
-                currentItem.updateImageURL(this.itemImage.getImage().toString(), this.defaultImagePath);
+                currentItem.updateImageURL(this.currentImageDisplayedURL, this.defaultImagePath);
             }
             /**
              * Same reason as above
@@ -620,7 +635,7 @@ public class AppStart extends Application {
              * hboxBlaBla.getChildren().add(NodeX) ... later ... hboxBlaBla.getChildren().add(NodeX)
              * Even though its the same Node which is added, it won't refresh the Node, it will in fact add it a second time.
              * Therefore if a Node is meant to be refreshed the Node should be removed explicit or the whole hbox has to be
-             * cleared and the node has to be readded
+             * cleared and the node has to be re-added
              */
             this.hboxForSoldTextOnly.getChildren().clear();
 
@@ -1281,7 +1296,7 @@ public class AppStart extends Application {
             localImageViewsFromSelectedImages.add(new ImageView(new Image(a, 200, 200, true, true)));
         });
         this.addedImagesListView.setItems(FXCollections.observableList(localImageViewsFromSelectedImages));
-        this.addedImagesListView.setFixedCellSize(200);
+        this.imageCounterLabel.setText(selectedImages.size()+ " image(s) selected");
     }
 
     private void refreshItemOfferList(IngameItem currentItem) {
